@@ -1,0 +1,36 @@
+:root {
+  /* scene backgrounds: the theme-color meta mirrors these (src/scenes.ts themeColor) */
+  --bg-cream: #FBF3E8;
+  --bg-pink: #F7C6D6;
+  --bg-night: #33254F;
+
+  --ink: #3A2620;
+  --ink-on-night: #FFF9F0;
+  --lilac: #C9B3DB;
+  --lilac-deep: #A98FC2;
+  --pink: #E35FB0;
+  --yellow: #F6C343;
+  --blush: #F29B9B;
+
+  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-ui: 'Outfit Variable', system-ui, sans-serif;
+
+  --step-word: clamp(2.5rem, 2rem + 4vw, 5.5rem);
+  --step-title: clamp(2.25rem, 1.5rem + 5vw, 6rem);
+  --step-ui: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem);
+
+  /* mirrored in GSAP as CustomEase "soft" and "pop" (src/scenes.ts) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --z-bg: 0;
+  --z-stars: 1;
+  --z-balloons: 2;
+  --z-her: 3;
+  --z-petals: 4;
+  --z-cake: 5;
+  --z-words: 6;
+  --z-ui: 7;
+  --z-confetti: 8;
+  --z-grain: 9;
+}
