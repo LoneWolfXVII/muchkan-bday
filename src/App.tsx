@@ -272,7 +272,7 @@ export default function App() {
               </span>
               <span data-age-in>
                 <span className={styles.age}>26</span>
-                <span className={styles.sub}>years of you</span>
+                <span className={styles.sub}>years young</span>
               </span>
             </div>
             <h1 data-word="title" translate="no" aria-label="Happy Birthday, Muskan">

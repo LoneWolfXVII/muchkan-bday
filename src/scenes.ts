@@ -170,7 +170,8 @@ function scenePetals(q: Q) {
 function sceneCake(q: Q) {
   const tl = gsap.timeline()
   tl.to(q('[data-cake]'), { y: 0, autoAlpha: 1, duration: 0.4, ease: 'pop' }, 0)
-    .to(q('[data-her-wrap]'), { y: () => -window.innerHeight * 0.05, scale: 0.9, duration: 0.4, transformOrigin: '50% 50%' }, 0)
+    // shrink from her feet so her head drops and leaves room for the big 26 above it
+    .to(q('[data-her-wrap]'), { scale: 0.8, duration: 0.4, transformOrigin: '50% 100%' }, 0)
     .to(q('[data-flame-rise]'), { scale: 1, duration: 0.12, stagger: 0.1, ease: 'pop', transformOrigin: '50% 100%' }, 0.35)
   show(tl, q('[data-word="wish"]'), 0.45)
   return tl

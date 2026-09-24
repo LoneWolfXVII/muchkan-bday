@@ -69,7 +69,7 @@
 }
 .age {
   display: block;
-  font-size: clamp(5.5rem, 4rem + 12vw, 10rem);
+  font-size: min(clamp(5.5rem, 4rem + 12vw, 10rem), 13svh); /* short screens: keep clear of her head */
   font-weight: 700;
   line-height: 0.9;
   color: var(--pink);

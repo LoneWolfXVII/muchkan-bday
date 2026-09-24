@@ -10,6 +10,7 @@ const END = 6.2 // src/scenes.ts T.end
 
 const VIEWPORTS = [
   { name: 'iphone', width: 390, height: 844 },
+  { name: 'iphone-se', width: 375, height: 667 },
   { name: 'laptop', width: 1440, height: 900 },
   { name: 'ultrawide', width: 2560, height: 1080 },
 ]
@@ -108,6 +109,12 @@ for (const vp of VIEWPORTS) {
       await expect(blownCake).toBeVisible()
       await page.waitForTimeout(900)
       await expect(page.locator('[data-age-in]')).toBeVisible()
+      // the 26 and its caption sit clear above the flower in her hair
+      const [ageBottom, flowerTop] = await page.evaluate(() => [
+        document.querySelector('[data-age-in]')!.getBoundingClientRect().bottom,
+        document.querySelector('[data-part="plumeria"]')!.getBoundingClientRect().top,
+      ])
+      expect(ageBottom).toBeLessThanOrEqual(flowerTop)
       await shot('4b-26')
       await scrollTo(page, PETALS_T)
       await scrollTo(page, CAKE_T)
