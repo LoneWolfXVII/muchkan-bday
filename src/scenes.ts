@@ -125,6 +125,9 @@ function sceneHello(q: Q) {
 
 function sceneBalloons(q: Q) {
   const tl = gsap.timeline()
+  // own GPU layers only while on screen (a phone runs out of layer memory if all 89 pieces keep one)
+  tl.set(q('[data-pop-balloon]'), { willChange: 'transform' }, 0)
+    .set(q('[data-pop-balloon]'), { willChange: 'auto' }, 1.5)
   tl.to(q('[data-pop-balloon]'), { y: 0, autoAlpha: 1, duration: 0.5, stagger: 0.1, ease: 'soft' }, 0)
   show(tl, q('[data-word="prompt"]'), 0.2)
   show(tl, q('[data-word="pops"]'), 0.2)
@@ -147,6 +150,8 @@ const petalDelay = (_: number, el: Element) => Number((el as HTMLElement).datase
 function scenePetals(q: Q) {
   const tl = gsap.timeline()
   const petals = q('[data-petal]')
+  tl.set(petals, { willChange: 'transform' }, 0)
+    .set(petals, { willChange: 'auto' }, 1)
   tl.to(q('[data-bg="pink"]'), { autoAlpha: 1, duration: 0.4 }, 0)
     // petals start hidden (fromTo renders its from-state immediately and on reverse), appear, fall, fade.
     // Each petal carries its own delay / fall / drift / spin (components/Petals), so the three tweens agree.
@@ -185,6 +190,7 @@ function sceneFinale(q: Q) {
     .to(q('[data-her-wrap]'), { y: 0, scale: 1, duration: 0.4 }, 0)
     .fromTo(q('[data-stars]'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.1)
     .fromTo(q('[data-star]'), { y: 30 }, { y: -40, duration: 0.5, ease: 'soft', stagger: { each: 0.01, from: 'random' } }, 0.1)
+    .set(q('[data-field-balloon]'), { willChange: 'transform' }, 0)
     // 26 balloons, one per year, float up into the sky for her to pop
     .to(q('[data-field]'), { autoAlpha: 1, duration: 0.05 }, 0.05)
     .to(q('[data-field-balloon]'), { y: 0, duration: 0.55, ease: 'soft', stagger: { each: 0.012, from: 'random' } }, 0.05)

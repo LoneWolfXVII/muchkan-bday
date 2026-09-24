@@ -8,7 +8,6 @@
 
 .petals i {
   position: absolute;
-  will-change: transform; /* 60 falling with the scroll: own layers, no repaint */
   display: block;
   visibility: hidden;
   opacity: 0;

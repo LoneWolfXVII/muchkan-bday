@@ -47,6 +47,7 @@ const TITLE_WORDS = ['Happy', 'Birthday,', 'Muskan']
 const sway = (i: number) => ({ '--sway-dur': `${1.5 + (i % 5) * 0.25}s`, '--sway-delay': `${-i * 0.4}s` }) as CSSProperties
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const touch = window.matchMedia('(pointer: coarse)').matches
 
 export default function App() {
   const scroller = useRef<HTMLDivElement>(null)
@@ -71,8 +72,9 @@ export default function App() {
   // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
   useEffect(() => {
     if (reduced()) return
-    // syncTouch: finger scrolling is smoothed and inertial too (by default Lenis leaves touch native)
-    const l = new Lenis({ wrapper: scroller.current!, content: track.current!, syncTouch: true })
+    // wheels only: touch stays native (runs off the main thread, so it never stutters when the page is busy);
+    // the scroll timeline smooths it instead (scrub below)
+    const l = new Lenis({ wrapper: scroller.current!, content: track.current! })
     l.on('scroll', ScrollTrigger.update)
     const tick = (time: number) => l.raf(time * 1000)
     gsap.ticker.add(tick)
@@ -137,7 +139,7 @@ export default function App() {
         trigger: track.current,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: true, // Lenis already smooths wheel and touch; a second catch-up here would lag behind the finger
+        scrub: touch ? 0.4 : true, // Lenis smooths wheels; native touch gets a short catch-up here
         animation: tl,
         onUpdate: (self) => {
           // Review Focus 1: a thumb that moves during the intro must not leave a half-faded "hey Muchkan"
