@@ -258,12 +258,13 @@ export default function App() {
               </button>
             ))}
           </div>
+          <Petals layer="back" />
           <div className={styles.her} data-her-wrap>
             <Muchkan />
             {/* inside her wrapper so it always sits just under her shirt, whatever the screen height */}
             <Cake blown={blown} onBlow={blow} />
           </div>
-          <Petals />
+          <Petals layer="front" />
           {POP_BALLOONS.map((b) => (
             <button
               key={b.name}
