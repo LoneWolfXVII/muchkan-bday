@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowCounterClockwise } from '@phosphor-icons/react'
 import { listenForBlow, micSupported } from './mic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -195,7 +194,7 @@ export default function App() {
     }
   }
 
-  // "Play again": a circle whooshes out of the button and covers the screen; behind it everything
+  // "start over": a circle whooshes out of the button and covers the screen; behind it everything
   // resets and jumps to the top; then it whooshes away and she bounces in again like the first load.
   const replay = (origin: Element) => {
     if (replaying.current) return
@@ -208,7 +207,7 @@ export default function App() {
       resetInteractions(q())
       pops.current = 0
       years.current = 0
-      counter.current!.textContent = `pop all ${YEARS}`
+      counter.current!.textContent = `pop all ${YEARS} to start again`
       blownRef.current = false
       setBlown(false)
       if (lenis.current) lenis.current.scrollTo(0, { immediate: true, force: true })
@@ -347,16 +346,10 @@ export default function App() {
 
           <p className={styles.hint} data-hint>scroll</p>
           <p className={styles.counter} data-counter aria-live="polite">
-            <span ref={counter}>pop all {YEARS}</span>
+            <span ref={counter}>pop all {YEARS} to start again</span>
           </p>
           <button type="button" className={styles.replay} data-replay onClick={(e) => replay(e.currentTarget)}>
-            {/* GSAP owns the button's own transform (scale/translate inline), so press and hover move inner spans */}
-            <span className={styles.replayBody}>
-              Play again
-              <span className={styles.replayIcon} aria-hidden="true">
-                <ArrowCounterClockwise size={18} weight="bold" />
-              </span>
-            </span>
+            or start over now
           </button>
         </div>
       </main>

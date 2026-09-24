@@ -30,7 +30,7 @@ for (const vp of VIEWPORTS) {
         const el = document.activeElement
         return el instanceof HTMLButtonElement ? (el.getAttribute('aria-label') ?? el.textContent ?? '') : ''
       })
-      expect(focusedLabel).not.toMatch(/Pop the|Wear the flower|Blow out the candles|Play again/)
+      expect(focusedLabel).not.toMatch(/Pop the|Wear the flower|Blow out the candles|start over/)
 
       // Review Focus 1: scroll during the intro, then back to the top
       await page.waitForTimeout(300)
@@ -106,7 +106,7 @@ for (const vp of VIEWPORTS) {
       await shot('5-finale')
       await noOverflow()
       expect(await page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute('content'))).toBe('#33254F')
-      const replay = page.getByRole('button', { name: 'Play again' })
+      const replay = page.getByRole('button', { name: 'or start over now' })
       await expect(replay).toBeVisible()
       const replayBox = (await replay.boundingBox())!
       expect(Math.min(replayBox.width, replayBox.height)).toBeGreaterThanOrEqual(44)
@@ -241,7 +241,7 @@ test('popping all 26 balloons in the finale starts the story again', async ({ pa
   await page.waitForTimeout(1200)
   await scrollTo(page, END)
   await page.waitForTimeout(1500)
-  await expect(page.getByText('pop all 26')).toBeVisible()
+  await expect(page.getByText('pop all 26 to start again')).toBeVisible()
   const balloons = page.getByRole('button', { name: /Pop balloon \d+ of 26/ })
   await expect(balloons).toHaveCount(26)
   for (let i = 0; i < 26; i++) {
@@ -258,7 +258,7 @@ test('popping all 26 balloons in the finale starts the story again', async ({ pa
   await page.waitForTimeout(4200) // confetti, then the whoosh
   expect(await page.evaluate(() => window.scrollY)).toBeLessThan(5)
   await expect(page.getByText('hey Muchkan', { exact: true })).toBeVisible()
-  await expect(page.getByText('pop all 26')).toBeHidden()
+  await expect(page.getByText('pop all 26 to start again')).toBeHidden()
   expect(errors).toEqual([])
 })
 
