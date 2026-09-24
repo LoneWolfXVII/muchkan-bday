@@ -1,0 +1,211 @@
+.track {
+  height: 700svh; /* 600svh of scroll = T.end timeline seconds (src/scenes.ts) */
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  isolation: isolate;
+}
+
+.bg {
+  position: fixed; /* covers the dynamic viewport even when iOS chrome collapses */
+  inset: 0;
+  z-index: var(--z-bg);
+  opacity: 0;
+  pointer-events: none;
+}
+.bg[data-bg='pink'] { background: var(--bg-pink); }
+.bg[data-bg='night'] { background: var(--bg-night); }
+
+.her {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: var(--z-her);
+  width: min(66vw, 44svh);
+}
+
+.words {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 7svh);
+  left: 16px;
+  right: 16px;
+  z-index: var(--z-words);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+.words > * {
+  grid-area: 1 / 1;
+  font-family: var(--font-display);
+  font-size: var(--step-word);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.words h1 {
+  font-size: var(--step-title);
+  color: var(--ink-on-night);
+}
+/* inner spans are animated with transforms, which inline boxes ignore */
+.words [data-pop],
+.words [data-hello-in],
+.words [data-prompt-in] { display: inline-block; }
+.swap { display: grid; justify-items: center; }
+.swap > * { grid-area: 1 / 1; display: block; }
+.sub {
+  display: block;
+  margin-top: 0.7em;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.age {
+  display: block;
+  font-size: min(clamp(5.5rem, 4rem + 12vw, 10rem), 13svh); /* short screens: keep clear of her head */
+  font-weight: 700;
+  line-height: 0.9;
+  color: var(--pink);
+}
+
+/* the three balloons she pops: real buttons, above her so taps land */
+.popBalloon {
+  position: absolute;
+  z-index: var(--z-cake);
+  width: clamp(76px, 22vw, 130px);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.popBalloon:disabled { cursor: default; }
+
+/* the flower gift */
+.flower {
+  position: absolute;
+  left: 62%;
+  top: 26%;
+  z-index: var(--z-cake);
+  display: grid;
+  place-items: center;
+  width: clamp(96px, 28vw, 140px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.flower > * { grid-area: 1 / 1; }
+.flowerGlow {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 249 240 / 0.9), rgb(246 195 67 / 0.25) 45%, transparent 70%);
+  opacity: 0.7;
+}
+.flowerBob { display: block; width: 70%; }
+.flowerBob svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* 26 balloons in the finale sky */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-balloons);
+  pointer-events: none;
+}
+.field { z-index: var(--z-cake); } /* above her edges, so every balloon can be tapped */
+.fieldBalloon {
+  position: absolute;
+  display: block;
+  min-width: 44px;
+  max-width: 90px;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+}
+.fieldBalloon:disabled { cursor: default; }
+/* tap area = the balloon itself; the string hangs outside the button and lets taps through,
+   so a balloon's string never blocks the one below it */
+.fieldBalloon,
+.popBalloon { aspect-ratio: 60 / 72; }
+.fieldBalloon svg,
+.popBalloon svg { pointer-events: none; }
+
+.counter {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 92px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  color: var(--ink-on-night);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(51 37 79 / 0.8); /* legible over her shirt on wide screens */
+}
+.titleWord { display: inline-block; white-space: nowrap; }
+.words [data-letter] { display: inline-block; }
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: bob 1.3s var(--ease-bounce) infinite alternate;
+}
+@keyframes bob {
+  to { transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint { animation: none; }
+}
+
+.replay {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 28px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  min-height: 48px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 2px solid var(--ink-on-night);
+  background: transparent;
+  color: var(--ink-on-night);
+  font-weight: 500;
+  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
+}
+/* the "Play again" whoosh: a circle GSAP positions (x/y) and scales from the button */
+.wipe {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: var(--z-wipe);
+  border-radius: 50%;
+  background: var(--bg-cream);
+  visibility: hidden; /* centred on its x/y by GSAP (xPercent/yPercent): GSAP drops a CSS translate's % y */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.replay:hover,
+.replay:focus-visible {
+  background: var(--ink-on-night);
+  color: var(--bg-night);
+}

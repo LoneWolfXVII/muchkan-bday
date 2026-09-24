@@ -1,0 +1,22 @@
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-confetti);
+  pointer-events: none;
+  overflow: clip;
+}
+
+.confetti i {
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--pink);
+  visibility: hidden;
+  opacity: 0;
+}
+.confetti i:nth-child(3n) { background: var(--yellow); }
+.confetti i:nth-child(3n + 1) { background: var(--lilac-deep); }
+.confetti i:nth-child(4n) { border-radius: 50%; background: var(--blush); }

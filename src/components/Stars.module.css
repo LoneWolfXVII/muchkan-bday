@@ -1,0 +1,15 @@
+.stars {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-stars);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.stars i {
+  position: absolute;
+  border-radius: 50%;
+  background: #FFF9F0;
+  box-shadow: 0 0 6px 1px rgb(255 249 240 / 0.6);
+}

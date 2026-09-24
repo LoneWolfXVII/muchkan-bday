@@ -1,0 +1,10 @@
+.her {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* No CSS transform-box/origin on SVG parts: GSAP bakes each part's pivot (transformOrigin/svgOrigin)
+   into its own matrix, measured from the view box. A CSS fill-box moves that reference and
+   displaces every scaled or rotated part (a blink dropped the eyes ~150px). */

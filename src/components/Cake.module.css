@@ -1,0 +1,19 @@
+.cake {
+  position: absolute;
+  left: 50%;
+  bottom: -14%; /* relative to her wrapper: the top tier tucks under her shirt */
+  translate: -50% 0; /* GSAP folds this into xPercent: -50 */
+  width: 70%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.cake svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
