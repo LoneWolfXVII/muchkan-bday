@@ -3,4 +3,15 @@
   width: 100%;
   height: auto;
   overflow: visible;
+  /* pendulum sway from the bottom of the string (y 128 of 130), on the compositor. Each balloon sets
+     --sway-dur / --sway-delay so they drift out of step. */
+  transform-origin: 50% 98.5%;
+  animation: sway var(--sway-dur, 1.8s) cubic-bezier(0.37, 0, 0.63, 1) var(--sway-delay, 0s) infinite alternate;
+}
+@keyframes sway {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .balloon { animation: none; }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { listenForBlow, micSupported } from './mic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -43,6 +43,9 @@ const FIELD = Array.from({ length: YEARS }, (_, i) => {
 
 const TITLE_WORDS = ['Happy', 'Birthday,', 'Muskan']
 
+/** Per-balloon CSS sway timing (Balloon.module.css), so no two swing in step. */
+const sway = (i: number) => ({ '--sway-dur': `${1.5 + (i % 5) * 0.25}s`, '--sway-delay': `${-i * 0.4}s` }) as CSSProperties
+
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export default function App() {
@@ -66,7 +69,8 @@ export default function App() {
   // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
   useEffect(() => {
     if (reduced()) return
-    const l = new Lenis({ wrapper: scroller.current!, content: track.current! })
+    // syncTouch: finger scrolling is smoothed and inertial too (by default Lenis leaves touch native)
+    const l = new Lenis({ wrapper: scroller.current!, content: track.current!, syncTouch: true })
     l.on('scroll', ScrollTrigger.update)
     const tick = (time: number) => l.raf(time * 1000)
     gsap.ticker.add(tick)
@@ -131,7 +135,7 @@ export default function App() {
         trigger: track.current,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: isReduced ? true : 0.6, // a short catch-up smooths touch scrolling, which Lenis leaves native
+        scrub: true, // Lenis already smooths wheel and touch; a second catch-up here would lag behind the finger
         animation: tl,
         onUpdate: (self) => {
           // Review Focus 1: a thumb that moves during the intro must not leave a half-faded "hey Muchkan"
@@ -253,7 +257,7 @@ export default function App() {
                   type="button"
                   className={styles.fieldBalloon}
                   data-field-balloon
-                  style={{ left: b.left, top: b.top, width: b.width }}
+                  style={{ left: b.left, top: b.top, width: b.width, ...sway(i) }}
                   aria-label={`Pop balloon ${i + 1} of ${YEARS}`}
                   onClick={(e) => popYear(e.currentTarget)}
                 >
@@ -268,13 +272,13 @@ export default function App() {
               <Cake blown={blown} onBlow={blow} />
             </div>
             <Petals layer="front" />
-            {POP_BALLOONS.map((b) => (
+            {POP_BALLOONS.map((b, i) => (
               <button
                 key={b.name}
                 type="button"
                 className={styles.popBalloon}
                 data-pop-balloon
-                style={{ left: b.left, top: b.top }}
+                style={{ left: b.left, top: b.top, ...sway(i + 7) }}
                 aria-label={`Pop the ${b.name} balloon`}
                 onClick={(e) => pop(e.currentTarget)}
               >
