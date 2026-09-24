@@ -1,3 +1,12 @@
+/* the one scrolling element: fills the fixed screen, so the page (and the phone's address bar) never moves */
+.scroller {
+  position: fixed;
+  inset: 0;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: none;
+}
+
 .track {
   height: 700svh; /* 600svh of scroll = T.end timeline seconds (src/scenes.ts) */
 }
