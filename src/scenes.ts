@@ -7,8 +7,12 @@ CustomEase.create('pop', '0.34,1.56,0.64,1') // --ease-bounce
 
 export type Q = ReturnType<typeof gsap.utils.selector>
 
-/** Scene start times in timeline seconds. 600svh of scroll is scrubbed over T.end, so 1s ≈ 100svh. */
-export const T = { hello: 0, balloons: 0.6, pops: 1.6, petals: 3.1, cake: 4.1, finale: 5.1, end: 6 } as const
+/**
+ * Scene start times in timeline seconds; 600svh of scroll is scrubbed over T.end.
+ * Everything finishes by 6; the last 0.2s is a hold, because an iOS toolbar collapse after
+ * ScrollTrigger measured shortens the real max scroll by a few percent.
+ */
+export const T = { hello: 0, balloons: 0.6, pops: 1.6, petals: 3.1, cake: 4.1, finale: 5.1, end: 6.2 } as const
 
 const CREAM = '#FBF3E8'
 const PINK = '#F7C6D6'
@@ -61,6 +65,8 @@ function centre(q: Q) {
 /** Initial states not covered by a scene's first fromTo. */
 function setup(q: Q) {
   centre(q)
+  // pivot at the knot before any tween renders, or smoothOrigin bakes in an offset and the body leaves its string
+  gsap.set(q('[data-body]'), { transformOrigin: '50% 100%' })
   gsap.set(q('[data-balloon]'), { y: () => window.innerHeight * 1.15 })
   gsap.set(q('[data-cake]'), { y: () => window.innerHeight * 0.6, autoAlpha: 0 })
   gsap.set(q('[data-flame-rise]'), { scale: 0, transformOrigin: '50% 100%' })
@@ -238,7 +244,7 @@ export function buildReducedTimeline(q: Q) {
   fade('[data-word="bloom"]', T.cake - 0.3, false)
 
   fade('[data-cake]', T.cake)
-  tl.to(q('[data-flame-rise]'), { scale: 1, stagger: 0.08, transformOrigin: '50% 100%' }, T.cake + 0.3)
+  tl.to(q('[data-flame-rise]'), { scale: 1, stagger: 0.08, transformOrigin: '50% 100%' }, T.cake + 0.1) // lit by 4.72, before the cake can be tapped
   fade('[data-word="wish"]', T.cake + 0.2)
   fade('[data-word="wish"]', T.finale - 0.1, false)
   fade('[data-cake]', T.finale - 0.1, false)

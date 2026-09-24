@@ -1,5 +1,5 @@
 // usage: node e2e/peek.mjs [--reduce] step...
-//   step = <t>            scroll to timeline second t (0..6)
+//   step = <t>            scroll to timeline second t (0..6.2, src/scenes.ts T.end)
 //        | click:<name>   click the button with that accessible name
 //        | shot:<file>    screenshot to e2e/shots/<file>.png
 //        | eval:<js>      print the value of a page expression
@@ -26,7 +26,7 @@ for (const step of args.filter((a) => a !== '--reduce')) {
   if (step.startsWith('eval:')) console.log(step.slice(5), '=>', await page.evaluate(step.slice(5)))
   else if (step.startsWith('click:')) await page.getByRole('button', { name: step.slice(6) }).click()
   else if (step.startsWith('shot:')) await page.screenshot({ path: `e2e/shots/${step.slice(5)}.png` })
-  else await page.evaluate((t) => window.scrollTo(0, (t / 6) * (document.documentElement.scrollHeight - innerHeight)), Number(step))
+  else await page.evaluate((t) => window.scrollTo(0, (t / 6.2) * (document.documentElement.scrollHeight - innerHeight)), Number(step))
   await page.waitForTimeout(800)
 }
 

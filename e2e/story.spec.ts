@@ -10,7 +10,7 @@ const SCENES = [
   { name: '5-finale', t: 6, heading: 'Happy Birthday, Muskan' },
 ]
 const CAKE_T = 4.9
-const END = 6
+const END = 6.2 // src/scenes.ts T.end
 
 const VIEWPORTS = [
   { name: 'iphone', width: 390, height: 844 },
@@ -96,3 +96,65 @@ for (const vp of VIEWPORTS) {
     })
   }
 }
+
+// Final-review findings, iPhone only
+test.describe('review fixes', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  const toFraction = (page: Page, f: number) =>
+    page.evaluate((f) => window.scrollTo(0, f * (document.documentElement.scrollHeight - window.innerHeight)), f)
+
+  test('balloon strings stay attached to their knots', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForTimeout(1200)
+    await scrollTo(page, 1.2)
+    const knots = await page.evaluate(() =>
+      Array.from(document.querySelectorAll<SVGGElement>('[data-balloon] [data-body]')).map((body) => {
+        const svg = body.ownerSVGElement!
+        const m = svg.getCTM()!.inverse().multiply(body.getCTM()!)
+        const p = new DOMPoint(30, 74).matrixTransform(m)
+        return [p.x, p.y]
+      }),
+    )
+    // the sway pivots at the knot, so the knot stays put whatever the rotation
+    for (const [x, y] of knots) {
+      expect(Math.abs(x - 30)).toBeLessThan(0.5)
+      expect(Math.abs(y - 74)).toBeLessThan(0.5)
+    }
+  })
+
+  test('tapping the cake before the candles are lit does nothing', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForTimeout(1200)
+    await scrollTo(page, CAKE_T - 0.7) // cake visible, flames not yet risen
+    await page.getByRole('button', { name: 'Blow out the candles' }).click({ force: true })
+    await page.waitForTimeout(600)
+    await scrollTo(page, CAKE_T)
+    const cake = page.getByRole('button', { name: 'Blow out the candles' })
+    await expect(cake).toBeVisible()
+    const flames = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[data-flame]')).map((f) => (f as SVGGElement).getBoundingClientRect().height),
+    )
+    for (const h of flames) expect(h).toBeGreaterThan(4)
+  })
+
+  test('the ending is complete a little before the very bottom (iOS toolbar collapse)', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForTimeout(1200)
+    await toFraction(page, 0.97)
+    await page.waitForTimeout(1500)
+    const state = await page.evaluate(() => {
+      const head = document.querySelector<SVGGElement>('[data-part="head"]')!
+      const m = head.transform.baseVal.consolidate()?.matrix
+      return {
+        replay: getComputedStyle(document.querySelector('[data-replay]')!).opacity,
+        headSin: m ? m.b : 0,
+        htmlBg: getComputedStyle(document.documentElement).backgroundColor,
+      }
+    })
+    expect(state.replay).toBe('1')
+    expect(Math.abs(state.headSin)).toBeLessThan(0.01)
+    // rubber-band overscroll shows the html background: it must match the night scene
+    expect(state.htmlBg).toBe('rgb(51, 37, 79)')
+  })
+})

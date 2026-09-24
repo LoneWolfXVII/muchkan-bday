@@ -65,7 +65,10 @@ export default function App() {
           // Review Focus 1: a thumb that moves during the intro must not leave a half-faded "hey Muchkan"
           if (introTl && self.progress > 0.02 && introTl.progress() < 1) introTl.progress(1)
           const c = themeColor(self.progress)
-          if (meta.content !== c) meta.content = c
+          if (meta.content !== c) {
+            meta.content = c
+            document.documentElement.style.background = c // iOS rubber-band overscroll shows the html background
+          }
         },
       })
     },
@@ -74,6 +77,8 @@ export default function App() {
 
   const blow = () => {
     if (blown) return // Review Focus 3: no double burst
+    const rises = stage.current!.querySelectorAll('[data-flame-rise]')
+    if (Number(gsap.getProperty(rises[rises.length - 1], 'scale')) < 1) return // candles not lit yet
     setBlown(true)
     const btn = stage.current!.querySelector<HTMLButtonElement>('[data-cake]')!
     gsap.to(btn.querySelectorAll('[data-flame]'), {

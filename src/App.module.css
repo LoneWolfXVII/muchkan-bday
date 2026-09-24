@@ -1,5 +1,5 @@
 .track {
-  height: 700svh; /* 600svh of scroll = 6 timeline seconds (src/scenes.ts T) */
+  height: 700svh; /* 600svh of scroll = T.end timeline seconds (src/scenes.ts) */
 }
 
 .stage {
