@@ -112,8 +112,11 @@ for (const vp of VIEWPORTS) {
       expect(Math.min(replayBox.width, replayBox.height)).toBeGreaterThanOrEqual(44)
 
       // replay resets everything she tapped
+      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
       await replay.click()
       await page.waitForTimeout(2200)
+      // the whoosh overlay is fixed: it must never add to the page (it would shift every scene)
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(pageHeight)
       expect(await page.evaluate(() => window.scrollY)).toBeLessThan(5)
       expect(await flowerInHair(page)).toBe(0)
       await scrollTo(page, BALLOONS_T)

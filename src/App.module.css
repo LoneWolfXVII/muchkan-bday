@@ -163,7 +163,7 @@
 .counter {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 92px);
+  bottom: calc(env(safe-area-inset-bottom) + 96px);
   translate: -50% 0;
   z-index: var(--z-ui);
   color: var(--ink-on-night);
@@ -174,9 +174,11 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   pointer-events: none;
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: 999px;
-  background: rgb(51 37 79 / 0.8); /* legible over her shirt on wide screens */
+  border: 1px solid rgb(255 249 240 / 0.16);
+  background: rgb(51 37 79 / 0.82); /* legible over her shirt on wide screens */
+  box-shadow: inset 0 1px 0 rgb(255 249 240 / 0.1);
 }
 .titleWord { display: inline-block; white-space: nowrap; }
 .words [data-letter] { display: inline-block; }
@@ -199,21 +201,6 @@
   .hint { animation: none; }
 }
 
-.replay {
-  position: absolute;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 28px);
-  translate: -50% 0;
-  z-index: var(--z-ui);
-  min-height: 48px;
-  padding: 12px 26px;
-  border-radius: 999px;
-  border: 2px solid var(--ink-on-night);
-  background: transparent;
-  color: var(--ink-on-night);
-  font-weight: 500;
-  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
-}
 /* the "Play again" whoosh: a circle GSAP positions (x/y) and scales from the button */
 .wipe {
   position: fixed;
@@ -227,8 +214,51 @@
   pointer-events: none;
 }
 
-.replay:hover,
-.replay:focus-visible {
-  background: var(--ink-on-night);
+.replay {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 28px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
   color: var(--bg-night);
+  font-weight: 600;
+}
+/* a cream pill with the replay glyph nested in its own night-coloured disc */
+.replayBody {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 6px 6px 6px 24px;
+  border-radius: 999px;
+  background: var(--ink-on-night);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(20 12 40 / 0.35),
+    0 14px 34px -8px rgb(20 12 40 / 0.7);
+  transition: scale 180ms var(--ease-out), box-shadow 300ms var(--ease-out);
+}
+.replayIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-night);
+  color: var(--ink-on-night);
+  transition: rotate 700ms var(--ease-bounce), background-color 300ms var(--ease-out);
+}
+.replay:hover .replayIcon,
+.replay:focus-visible .replayIcon {
+  rotate: -300deg;
+  background: var(--pink);
+}
+.replay:hover .replayBody { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(20 12 40 / 0.35), 0 18px 40px -8px rgb(227 95 176 / 0.45); }
+.replay:active .replayBody { scale: 0.97; }
+@media (prefers-reduced-motion: reduce) {
+  .replayIcon { transition: none; }
 }

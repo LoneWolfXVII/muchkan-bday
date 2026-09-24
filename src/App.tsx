@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ArrowCounterClockwise } from '@phosphor-icons/react'
 import { listenForBlow, micSupported } from './mic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -344,7 +345,13 @@ export default function App() {
             <span ref={counter}>pop all {YEARS}</span>
           </p>
           <button type="button" className={styles.replay} data-replay onClick={(e) => replay(e.currentTarget)}>
-            Play again
+            {/* GSAP owns the button's own transform (scale/translate inline), so press and hover move inner spans */}
+            <span className={styles.replayBody}>
+              Play again
+              <span className={styles.replayIcon} aria-hidden="true">
+                <ArrowCounterClockwise size={18} weight="bold" />
+              </span>
+            </span>
           </button>
         </div>
       </main>
