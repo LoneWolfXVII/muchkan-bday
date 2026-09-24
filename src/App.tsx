@@ -85,8 +85,8 @@ export default function App() {
 
   const pop = (balloon: HTMLButtonElement) => {
     if (!popBalloon(balloon, reduced())) return
+    if (!reduced()) laugh(q(), pops.current)
     revealPopWord(q(), pops.current++)
-    if (!reduced()) laugh(q())
   }
 
   const giveFlower = () => applyFlower(q(), reduced())
@@ -95,7 +95,7 @@ export default function App() {
     if (!popBalloon(balloon, reduced())) return
     const left = YEARS - ++years.current
     counter.current!.textContent = left ? `${left} left` : `all ${YEARS}. happy birthday!`
-    if (!reduced()) laugh(q())
+    if (!reduced()) laugh(q(), years.current - 1) // alternate from a laugh on the first pop
     if (left) return
     // the last one: confetti everywhere, then the story starts again on its own
     ;[0.2, 0.5, 0.8].forEach((fx, i) =>

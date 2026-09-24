@@ -44,7 +44,9 @@ export default function Muchkan() {
             fill="#3A2620"
           />
         </g>
-        <path d="M72 94 L86 93 M114 93 L128 94" stroke="#3A2620" strokeWidth="2.5" strokeLinecap="round" />
+        <g data-part="brows">
+          <path d="M72 94 L86 93 M114 93 L128 94" stroke="#3A2620" strokeWidth="2.5" strokeLinecap="round" />
+        </g>
         <g data-part="eyesClosed">
           <path
             d="M73 110 Q80 103 87 110 M113 110 Q120 103 127 110"
@@ -55,8 +57,10 @@ export default function Muchkan() {
           />
         </g>
         <g data-part="eyesOpen" opacity="0">
-          <circle cx="80" cy="109" r="3.2" fill="#2A1A16" />
-          <circle cx="120" cy="109" r="3.2" fill="#2A1A16" />
+          <circle cx="80" cy="109" r="4.2" fill="#2A1A16" />
+          <circle cx="120" cy="109" r="4.2" fill="#2A1A16" />
+          <circle cx="81.5" cy="107.5" r="1.3" fill="#fff" />
+          <circle cx="121.5" cy="107.5" r="1.3" fill="#fff" />
         </g>
         <g data-part="glasses">
           <rect x="64" y="96" width="32" height="27" rx="11" fill="#fff" fillOpacity=".18" stroke="#8E8E99" strokeWidth="2.5" />
@@ -71,6 +75,14 @@ export default function Muchkan() {
         <circle cx="104" cy="123" r="1.4" fill="#DADAE3" />
         <g data-part="mouth">
           <path d="M88 136 Q100 145 112 136" stroke="#8A4A3E" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+        </g>
+        {/* reaction mouths, hidden until she reacts: a big laugh and a surprised "o" */}
+        <g data-part="mouthLaugh" opacity="0">
+          <path d="M87 134 Q100 134 113 134 Q111 150 100 150 Q89 150 87 134 Z" fill="#6B3A33" stroke="#8A4A3E" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M92 145 Q100 140 108 145 Q104 150 100 150 Q96 150 92 145 Z" fill="#E7869C" />
+        </g>
+        <g data-part="mouthWow" opacity="0">
+          <ellipse cx="100" cy="139" rx="4.5" ry="5.5" fill="#6B3A33" stroke="#8A4A3E" strokeWidth="1.5" />
         </g>
 
         <g transform="translate(92 44) rotate(-15)">

@@ -151,6 +151,9 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   pointer-events: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(51 37 79 / 0.8); /* legible over her shirt on wide screens */
 }
 .titleWord { display: inline-block; white-space: nowrap; }
 .words [data-letter] { display: inline-block; }

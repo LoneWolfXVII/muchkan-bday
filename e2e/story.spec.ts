@@ -262,7 +262,12 @@ test('popping all 26 balloons in the finale starts the story again', async ({ pa
     const box = (await b.boundingBox())!
     expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
     await b.click() // fails if anything (her, the title, the button) covers a balloon
+    // her face reacts: a big laugh on the first pop, a wide-eyed "wow" on the second
+    if (i === 0) await expect(page.locator('[data-part="mouthLaugh"]')).toBeVisible({ timeout: 1000 })
+    if (i === 1) await expect(page.locator('[data-part="eyesOpen"]')).toBeVisible({ timeout: 1000 })
+    if (i === 1) await expect(page.locator('[data-part="mouthWow"]')).toBeVisible({ timeout: 1000 })
     if (i === 0) await expect(page.getByText('25 left')).toBeVisible()
+    if (i < 2) await page.screenshot({ path: `e2e/shots/react-${i}.png`, clip: { x: 95, y: 250, width: 200, height: 220 } })
   }
   await expect(page.getByText('all 26. happy birthday!')).toBeVisible()
   await page.waitForTimeout(4200) // confetti, then the whoosh

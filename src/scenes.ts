@@ -102,6 +102,7 @@ export function resetInteractions(q: Q) {
   gsap.set(q('[data-flower-glow]'), { clearProps: 'visibility' }) // inherit: an explicit 'visible' would show through the hidden button
   gsap.set(q('[data-part="plumeria"]'), { scale: 0, rotation: 0, transformOrigin: '50% 50%' })
   gsap.set(q('[data-part="blush"]'), { opacity: 0.6 })
+  restFace(q)
   gsap.set(q('[data-flame]'), { scale: 1, transformOrigin: '50% 100%' })
   q('[data-pop-balloon], [data-field-balloon], [data-flower]').forEach((b) => ((b as HTMLButtonElement).disabled = false))
 }
@@ -289,8 +290,38 @@ export function revealPopWord(q: Q, n: number) {
   gsap.fromTo(q('[data-pop]')[n], { autoAlpha: 0, y: 24, scale: 0.8 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: 'pop', delay: 0.1 })
 }
 
-/** She laughs: a little hop and rosy cheeks. */
-export function laugh(q: Q) {
+const FACE = '[data-part="mouth"], [data-part="mouthLaugh"], [data-part="mouthWow"], [data-part="eyesClosed"], [data-part="eyesOpen"], [data-part="brows"]'
+let face: gsap.core.Timeline | null = null
+
+/** Her resting face: closed happy eyes, soft smile, brows down. */
+function restFace(q: Q) {
+  face?.kill()
+  gsap.set(q('[data-part="mouthLaugh"], [data-part="mouthWow"], [data-part="eyesOpen"]'), { autoAlpha: 0, scale: 1 })
+  gsap.set(q('[data-part="mouth"], [data-part="eyesClosed"]'), { autoAlpha: 1 })
+  gsap.set(q('[data-part="brows"]'), { y: 0 })
+}
+
+/**
+ * She reacts to a pop: a hop plus an expression that alternates between a big laugh
+ * and a wide-eyed "wow", then settles back to her smile. Rapid taps restart it cleanly.
+ */
+export function laugh(q: Q, n = 0) {
+  restFace(q)
+  const wow = n % 2 === 1
+  const mouth = q(wow ? '[data-part="mouthWow"]' : '[data-part="mouthLaugh"]')
+  face = gsap.timeline()
+    .set(q('[data-part="mouth"]'), { autoAlpha: 0 })
+    .fromTo(mouth, { autoAlpha: 1, scale: 0.4 }, { scale: 1, transformOrigin: '50% 0%', duration: 0.25, ease: 'pop' }, 0)
+    .to(q('[data-part="brows"]'), { y: wow ? -6 : -3, duration: 0.2, ease: 'pop' }, 0)
+  if (wow) {
+    face
+      .set(q('[data-part="eyesClosed"]'), { autoAlpha: 0 }, 0)
+      .fromTo(q('[data-part="eyesOpen"]'), { autoAlpha: 1, scale: 0.5 }, { scale: 1, transformOrigin: '50% 50%', duration: 0.25, ease: 'pop' }, 0)
+  }
+  face
+    .to(q('[data-part="brows"]'), { y: 0, duration: 0.3, ease: 'soft' }, 1.3)
+    .set(q(FACE), { autoAlpha: 0 }, 1.4)
+    .set(q('[data-part="mouth"], [data-part="eyesClosed"], [data-part="brows"]'), { autoAlpha: 1 }, 1.4)
   gsap.fromTo(q('[data-her]'), { y: 0 }, { y: -14, duration: 0.14, yoyo: true, repeat: 1, ease: 'soft' })
   gsap.fromTo(q('[data-part="blush"]'), { opacity: 1 }, { opacity: 0.6, duration: 0.8, ease: 'soft' })
 }
