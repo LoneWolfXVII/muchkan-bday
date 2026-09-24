@@ -8,6 +8,7 @@
   padding: 0;
   border: 0;
   background: none;
+  pointer-events: auto; /* its wrapper (her) ignores taps */
 }
 
 .cake svg {

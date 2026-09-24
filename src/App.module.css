@@ -43,6 +43,8 @@
   top: 50%;
   z-index: var(--z-her);
   width: min(66vw, 44svh);
+  pointer-events: none; /* taps pass through her to the finale balloons behind her (the cake re-enables its own) */
+  will-change: transform; /* rasterised once, moved/scaled by the GPU (she only ever shrinks, so it stays sharp) */
 }
 
 .words {
@@ -131,7 +133,6 @@
 /* the three balloons she pops: real buttons, above her so taps land */
 .popBalloon {
   position: absolute;
-  will-change: transform; /* scrubbed every scroll frame: own layer, no repaint */
   z-index: var(--z-cake);
   width: clamp(76px, 22vw, 130px);
   padding: 0;
@@ -182,10 +183,8 @@
   z-index: var(--z-balloons);
   pointer-events: none;
 }
-.field { z-index: var(--z-cake); } /* above her edges, so every balloon can be tapped */
 .fieldBalloon {
   position: absolute;
-  will-change: transform; /* 26 of them rise with the scroll: own layers, no repaint */
   display: block;
   min-width: 44px;
   max-width: 90px;
@@ -205,7 +204,7 @@
 .counter {
   position: absolute;
   left: 50%;
-  bottom: calc(100lvh - 100svh + env(safe-area-inset-bottom) + 72px); /* above the bars even when they show */
+  bottom: calc(100lvh - 100dvh + env(safe-area-inset-bottom) + 72px); /* just above the visible bottom, bars shown or hidden */
   translate: -50% 0;
   z-index: var(--z-ui);
   color: var(--ink-on-night);
@@ -222,7 +221,7 @@
 .hint {
   position: absolute;
   left: 50%;
-  bottom: calc(100lvh - 100svh + env(safe-area-inset-bottom) + 24px); /* above the bars even when they show */
+  bottom: calc(100lvh - 100dvh + env(safe-area-inset-bottom) + 24px); /* just above the visible bottom, bars shown or hidden */
   translate: -50% 0;
   z-index: var(--z-ui);
   font-size: 0.8rem;
@@ -254,7 +253,7 @@
 .replay {
   position: absolute;
   left: 50%;
-  bottom: calc(100lvh - 100svh + env(safe-area-inset-bottom) + 20px); /* above the bars even when they show */
+  bottom: calc(100lvh - 100dvh + env(safe-area-inset-bottom) + 20px); /* just above the visible bottom, bars shown or hidden */
   translate: -50% 0;
   z-index: var(--z-ui);
   min-height: 44px;
