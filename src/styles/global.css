@@ -15,15 +15,24 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
+/* The document never scrolls: the story scrolls inside [data-scroller] (App). On phones this keeps the
+   address bar from sliding away, so the screen height never changes mid-story (no gap under the
+   stage, no scroll positions measured against the wrong height). */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none; /* no pull-to-refresh or rubber-band on the page itself */
+}
+
 html {
-  overflow-x: clip;
   touch-action: manipulation; /* no double-tap zoom; pinch zoom stays */
+  -webkit-tap-highlight-color: transparent; /* the browser's tap flash is a box around the element's rectangle */
   -webkit-text-size-adjust: 100%;
   background: var(--bg-cream);
 }
 
 body {
-  overflow-x: clip;
   background: var(--bg-cream);
   color: var(--ink);
   font-family: var(--font-ui);
@@ -50,7 +59,7 @@ button {
   color: inherit;
   cursor: pointer;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: rgb(201 179 219 / 0.35);
+  -webkit-tap-highlight-color: transparent; /* every tap has its own animated feedback */
 }
 
 :focus-visible {

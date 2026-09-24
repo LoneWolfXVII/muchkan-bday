@@ -15,9 +15,11 @@ export const VIEWPORTS = [
   { name: 'ultrawide', width: 2560, height: 1080 },
 ]
 
+/** The story scrolls inside [data-scroller] (the document itself never scrolls). */
 export async function scrollTo(page: Page, t: number) {
   await page.evaluate((p) => {
-    window.scrollTo(0, p * (document.documentElement.scrollHeight - window.innerHeight))
+    const s = document.querySelector('[data-scroller]') ?? document.documentElement
+    s.scrollTo(0, p * (s.scrollHeight - s.clientHeight))
   }, t / END)
   await page.waitForTimeout(900) // lenis + scrub (0.6s catch-up) settle
 }

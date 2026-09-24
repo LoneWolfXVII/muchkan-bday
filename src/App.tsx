@@ -46,6 +46,7 @@ const TITLE_WORDS = ['Happy', 'Birthday,', 'Muskan']
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export default function App() {
+  const scroller = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const lenis = useRef<Lenis | null>(null)
@@ -65,7 +66,7 @@ export default function App() {
   // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
   useEffect(() => {
     if (reduced()) return
-    const l = new Lenis()
+    const l = new Lenis({ wrapper: scroller.current!, content: track.current! })
     l.on('scroll', ScrollTrigger.update)
     const tick = (time: number) => l.raf(time * 1000)
     gsap.ticker.add(tick)
@@ -126,6 +127,7 @@ export default function App() {
       introTl.current = introAnim
       let waved = false
       trigger.current = ScrollTrigger.create({
+        scroller: scroller.current,
         trigger: track.current,
         start: 'top top',
         end: 'bottom bottom',
@@ -211,7 +213,7 @@ export default function App() {
       blownRef.current = false
       setBlown(false)
       if (lenis.current) lenis.current.scrollTo(0, { immediate: true, force: true })
-      else window.scrollTo({ top: 0 })
+      else scroller.current!.scrollTo({ top: 0 })
       ScrollTrigger.update()
       if (trigger.current?.getTween()) trigger.current.getTween().progress(1) // skip the scrub catch-up (none when scrub is `true`)
       introTl.current?.restart() // under cover, so the reveal shows her bouncing in
@@ -238,122 +240,124 @@ export default function App() {
 
   return (
     <>
-      <main ref={track} className={styles.track}>
-        <div ref={stage} className={styles.stage}>
-          <div className={styles.bg} data-bg="pink" />
-          <div className={styles.bg} data-bg="night" />
-          <Stars />
-          <div className={styles.field} data-field>
-            {FIELD.map((b, i) => (
+      <div ref={scroller} className={styles.scroller} data-scroller>
+        <main ref={track} className={styles.track}>
+          <div ref={stage} className={styles.stage}>
+            <div className={styles.bg} data-bg="pink" />
+            <div className={styles.bg} data-bg="night" />
+            <Stars />
+            <div className={styles.field} data-field>
+              {FIELD.map((b, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={styles.fieldBalloon}
+                  data-field-balloon
+                  style={{ left: b.left, top: b.top, width: b.width }}
+                  aria-label={`Pop balloon ${i + 1} of ${YEARS}`}
+                  onClick={(e) => popYear(e.currentTarget)}
+                >
+                  <Balloon color={b.color} />
+                </button>
+              ))}
+            </div>
+            <Petals layer="back" />
+            <div className={styles.her} data-her-wrap>
+              <Muchkan />
+              {/* inside her wrapper so it always sits just under her shirt, whatever the screen height */}
+              <Cake blown={blown} onBlow={blow} />
+            </div>
+            <Petals layer="front" />
+            {POP_BALLOONS.map((b) => (
               <button
-                key={i}
+                key={b.name}
                 type="button"
-                className={styles.fieldBalloon}
-                data-field-balloon
-                style={{ left: b.left, top: b.top, width: b.width }}
-                aria-label={`Pop balloon ${i + 1} of ${YEARS}`}
-                onClick={(e) => popYear(e.currentTarget)}
+                className={styles.popBalloon}
+                data-pop-balloon
+                style={{ left: b.left, top: b.top }}
+                aria-label={`Pop the ${b.name} balloon`}
+                onClick={(e) => pop(e.currentTarget)}
               >
                 <Balloon color={b.color} />
               </button>
             ))}
-          </div>
-          <Petals layer="back" />
-          <div className={styles.her} data-her-wrap>
-            <Muchkan />
-            {/* inside her wrapper so it always sits just under her shirt, whatever the screen height */}
-            <Cake blown={blown} onBlow={blow} />
-          </div>
-          <Petals layer="front" />
-          {POP_BALLOONS.map((b) => (
-            <button
-              key={b.name}
-              type="button"
-              className={styles.popBalloon}
-              data-pop-balloon
-              style={{ left: b.left, top: b.top }}
-              aria-label={`Pop the ${b.name} balloon`}
-              onClick={(e) => pop(e.currentTarget)}
-            >
-              <Balloon color={b.color} />
+            <button type="button" className={styles.flower} data-flower aria-label="Wear the flower" onClick={giveFlower}>
+              <span className={styles.flowerGlow} data-flower-glow />
+              <span className={styles.flowerBob} data-flower-bob>
+                <svg data-flower-fly viewBox="-24 -24 48 48" aria-hidden="true">
+                  <Plumeria />
+                </svg>
+              </span>
             </button>
-          ))}
-          <button type="button" className={styles.flower} data-flower aria-label="Wear the flower" onClick={giveFlower}>
-            <span className={styles.flowerGlow} data-flower-glow />
-            <span className={styles.flowerBob} data-flower-bob>
-              <svg data-flower-fly viewBox="-24 -24 48 48" aria-hidden="true">
-                <Plumeria />
-              </svg>
-            </span>
-          </button>
 
-          <div className={styles.words}>
-            <p data-word="hello" translate="no"><span data-hello-in>hey Muchkan</span></p>
-            <p data-word="prompt">
-              <span data-prompt-in>
-                pop the balloons<span className={styles.sub}>tap them</span>
-              </span>
-            </p>
-            <p data-word="pops">
-              <span data-pop>it’s</span> <span data-pop>your</span> <span data-pop>day</span>
-            </p>
-            <p data-word="flower" className={styles.swap}>
-              <span data-flower-ask>
-                a flower for you<span className={styles.sub}>tap to wear it</span>
-              </span>
-              <span data-flower-done>there. perfect.</span>
-            </p>
-            <p data-word="bloom">bloom</p>
-            <div data-word="wish" className={styles.swap}>
-              <span data-wish-in>
-                make a wish
-                <span className={styles.micArea} aria-live="polite">
-                  {mic === 'off' && <span className={styles.sub}>tap the cake</span>}
-                  {mic === 'listening' && <span className={styles.sub}>listening… blow on your phone</span>}
-                  {mic === 'idle' && (
-                    <>
-                      <span className={styles.sub}>blow on your phone</span>
-                      <button
-                        type="button"
-                        className={styles.micButton}
-                        onClick={startMic}
-                        aria-label="Blow with the microphone"
-                      >
-                        use mic
-                      </button>
-                      <span className={`${styles.sub} ${styles.subQuiet}`}>or tap the cake</span>
-                    </>
-                  )}
+            <div className={styles.words}>
+              <p data-word="hello" translate="no"><span data-hello-in>hey Muchkan</span></p>
+              <p data-word="prompt">
+                <span data-prompt-in>
+                  pop the balloons<span className={styles.sub}>tap them</span>
                 </span>
-              </span>
-              <span data-age-in>
-                <span className={styles.age}>26</span>
-                <span className={styles.sub}>years young</span>
-              </span>
-            </div>
-            <h1 data-word="title" translate="no" aria-label="Happy Birthday, Muskan">
-              {TITLE_WORDS.map((word, w) => (
-                <span key={w}>
-                  <span className={styles.titleWord} aria-hidden="true">
-                    {word.split('').map((ch, i) => (
-                      <span key={i} data-letter>{ch}</span>
-                    ))}
+              </p>
+              <p data-word="pops">
+                <span data-pop>it’s</span> <span data-pop>your</span> <span data-pop>day</span>
+              </p>
+              <p data-word="flower" className={styles.swap}>
+                <span data-flower-ask>
+                  a flower for you<span className={styles.sub}>tap to wear it</span>
+                </span>
+                <span data-flower-done>there. perfect.</span>
+              </p>
+              <p data-word="bloom">bloom</p>
+              <div data-word="wish" className={styles.swap}>
+                <span data-wish-in>
+                  make a wish
+                  <span className={styles.micArea} aria-live="polite">
+                    {mic === 'off' && <span className={styles.sub}>tap the cake</span>}
+                    {mic === 'listening' && <span className={styles.sub}>listening… blow on your phone</span>}
+                    {mic === 'idle' && (
+                      <>
+                        <span className={styles.sub}>blow on your phone</span>
+                        <button
+                          type="button"
+                          className={styles.micButton}
+                          onClick={startMic}
+                          aria-label="Blow with the microphone"
+                        >
+                          use mic
+                        </button>
+                        <span className={`${styles.sub} ${styles.subQuiet}`}>or tap the cake</span>
+                      </>
+                    )}
                   </span>
-                  {w < TITLE_WORDS.length - 1 ? ' ' : ''}
                 </span>
-              ))}
-            </h1>
-          </div>
+                <span data-age-in>
+                  <span className={styles.age}>26</span>
+                  <span className={styles.sub}>years young</span>
+                </span>
+              </div>
+              <h1 data-word="title" translate="no" aria-label="Happy Birthday, Muskan">
+                {TITLE_WORDS.map((word, w) => (
+                  <span key={w}>
+                    <span className={styles.titleWord} aria-hidden="true">
+                      {word.split('').map((ch, i) => (
+                        <span key={i} data-letter>{ch}</span>
+                      ))}
+                    </span>
+                    {w < TITLE_WORDS.length - 1 ? ' ' : ''}
+                  </span>
+                ))}
+              </h1>
+            </div>
 
-          <p className={styles.hint} data-hint>scroll</p>
-          <p className={styles.counter} data-counter aria-live="polite">
-            <span ref={counter}>pop all {YEARS} to start again</span>
-          </p>
-          <button type="button" className={styles.replay} data-replay onClick={(e) => replay(e.currentTarget)}>
-            or start over now
-          </button>
-        </div>
-      </main>
+            <p className={styles.hint} data-hint>scroll</p>
+            <p className={styles.counter} data-counter aria-live="polite">
+              <span ref={counter}>pop all {YEARS} to start again</span>
+            </p>
+            <button type="button" className={styles.replay} data-replay onClick={(e) => replay(e.currentTarget)}>
+              or start over now
+            </button>
+          </div>
+        </main>
+      </div>
       <Confetti ref={confetti} />
       <div ref={wipe} className={styles.wipe} aria-hidden="true" />
     </>

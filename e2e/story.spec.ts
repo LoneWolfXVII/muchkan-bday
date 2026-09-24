@@ -112,12 +112,12 @@ for (const vp of VIEWPORTS) {
       expect(Math.min(replayBox.width, replayBox.height)).toBeGreaterThanOrEqual(44)
 
       // replay resets everything she tapped
-      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+      const pageHeight = await page.evaluate(() => (document.querySelector('[data-scroller]') as HTMLElement).scrollHeight)
       await replay.click()
       await page.waitForTimeout(2200)
       // the whoosh overlay is fixed: it must never add to the page (it would shift every scene)
-      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(pageHeight)
-      expect(await page.evaluate(() => window.scrollY)).toBeLessThan(5)
+      expect(await page.evaluate(() => (document.querySelector('[data-scroller]') as HTMLElement).scrollHeight)).toBe(pageHeight)
+      expect(await page.evaluate(() => (document.querySelector('[data-scroller]') as HTMLElement).scrollTop)).toBeLessThan(5)
       expect(await flowerInHair(page)).toBe(0)
       await scrollTo(page, BALLOONS_T)
       await expect(page.getByRole('button', { name: 'Pop the lilac balloon' })).toBeEnabled()
@@ -154,7 +154,10 @@ test.describe('review fixes', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
   const toFraction = (page: Page, f: number) =>
-    page.evaluate((f) => window.scrollTo(0, f * (document.documentElement.scrollHeight - window.innerHeight)), f)
+    page.evaluate((f) => {
+      const s = document.querySelector('[data-scroller]')!
+      s.scrollTo(0, f * (s.scrollHeight - s.clientHeight))
+    }, f)
 
   test('blinking keeps the eyes in place', async ({ page }) => {
     await page.goto('/')
@@ -256,7 +259,7 @@ test('popping all 26 balloons in the finale starts the story again', async ({ pa
   }
   await expect(page.getByText('all 26. happy birthday!')).toBeVisible()
   await page.waitForTimeout(4200) // confetti, then the whoosh
-  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(5)
+  expect(await page.evaluate(() => (document.querySelector('[data-scroller]') as HTMLElement).scrollTop)).toBeLessThan(5)
   await expect(page.getByText('hey Muchkan', { exact: true })).toBeVisible()
   await expect(page.getByText('pop all 26 to start again')).toBeHidden()
   expect(errors).toEqual([])
@@ -275,4 +278,30 @@ test('mic permission denied falls back to tapping the cake', async ({ page }) =>
   await expect(page.getByRole('button', { name: 'Blow with the microphone' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Blow out the candles' }).click()
   await expect(page.getByRole('button', { name: 'Candles out. Wish made' })).toBeVisible()
+})
+
+test.describe('real phones', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test('the story scrolls inside its own container, so the address bar never collapses', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForTimeout(1200)
+    const scroller = page.locator('[data-scroller]')
+    await expect(scroller).toHaveCount(1)
+    // the document is exactly one screen tall and never scrolls; only the scroller does
+    expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true)
+    await scrollTo(page, CAKE_T)
+    expect(await page.evaluate(() => window.scrollY)).toBe(0)
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
+    await expect(page.getByText('make a wish', { exact: false })).toBeVisible()
+  })
+
+  test('tapping shows no square highlight box', async ({ page }) => {
+    await page.goto('/')
+    const colors = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('button')).map((b) => getComputedStyle(b).getPropertyValue('-webkit-tap-highlight-color')),
+    )
+    expect(colors.length).toBeGreaterThan(0)
+    for (const c of colors) expect(c).toBe('rgba(0, 0, 0, 0)')
+  })
 })

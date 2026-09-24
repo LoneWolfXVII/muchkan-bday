@@ -26,13 +26,13 @@ for (const step of args.filter((a) => a !== '--reduce')) {
   if (step.startsWith('eval:')) console.log(step.slice(5), '=>', await page.evaluate(step.slice(5)))
   else if (step.startsWith('click:')) await page.getByRole('button', { name: step.slice(6) }).click()
   else if (step.startsWith('shot:')) await page.screenshot({ path: `e2e/shots/${step.slice(5)}.png` })
-  else await page.evaluate((t) => window.scrollTo(0, (t / 6.2) * (document.documentElement.scrollHeight - innerHeight)), Number(step))
+  else await page.evaluate((t) => { const s = document.querySelector('[data-scroller]'); s.scrollTo(0, (t / 6.2) * (s.scrollHeight - s.clientHeight)) }, Number(step))
   await page.waitForTimeout(800)
 }
 
 console.log({
   errors,
-  scrollY: await page.evaluate(() => window.scrollY),
+  scrollTop: await page.evaluate(() => document.querySelector('[data-scroller]').scrollTop),
   theme: await page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute('content')),
   cake: await page.evaluate(() => document.querySelector('[data-cake]')?.getAttribute('aria-label') ?? null),
 })
