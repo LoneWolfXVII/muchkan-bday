@@ -17,6 +17,7 @@
 
 html {
   overflow-x: clip;
+  touch-action: manipulation; /* no double-tap zoom; pinch zoom stays */
   -webkit-text-size-adjust: 100%;
   background: var(--bg-cream);
 }

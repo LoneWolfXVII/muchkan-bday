@@ -86,4 +86,10 @@
   background: transparent;
   color: var(--ink-on-night);
   font-weight: 500;
+  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
+}
+.replay:hover,
+.replay:focus-visible {
+  background: var(--ink-on-night);
+  color: var(--bg-night);
 }

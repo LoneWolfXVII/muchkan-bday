@@ -11,7 +11,6 @@ export default function Cake({ blown, onBlow }: Props) {
       className={styles.cake}
       data-cake
       onClick={onBlow}
-      aria-pressed={blown}
       aria-label={blown ? 'Candles out. Wish made' : 'Blow out the candles'}
     >
       <svg viewBox="0 0 116 120" aria-hidden="true">
