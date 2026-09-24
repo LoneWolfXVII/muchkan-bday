@@ -238,3 +238,29 @@ test.describe('review fixes', () => {
     expect(state.htmlBg).toBe('rgb(51, 37, 79)')
   })
 })
+
+test('popping all 26 balloons in the finale starts the story again', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await page.goto('/')
+  await page.waitForTimeout(1200)
+  await scrollTo(page, END)
+  await page.waitForTimeout(1500)
+  await expect(page.getByText('pop all 26')).toBeVisible()
+  const balloons = page.getByRole('button', { name: /Pop balloon \d+ of 26/ })
+  await expect(balloons).toHaveCount(26)
+  for (let i = 0; i < 26; i++) {
+    const b = balloons.nth(i)
+    const box = (await b.boundingBox())!
+    expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
+    await b.click() // fails if anything (her, the title, the button) covers a balloon
+    if (i === 0) await expect(page.getByText('25 left')).toBeVisible()
+  }
+  await expect(page.getByText('all 26. happy birthday!')).toBeVisible()
+  await page.waitForTimeout(4200) // confetti, then the whoosh
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(5)
+  await expect(page.getByText('hey Muchkan', { exact: true })).toBeVisible()
+  await expect(page.getByText('pop all 26')).toBeHidden()
+  expect(errors).toEqual([])
+})

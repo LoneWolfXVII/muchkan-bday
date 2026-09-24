@@ -26,13 +26,19 @@ const POP_BALLOONS = [
   { color: '#F29B9B', name: 'pink', left: '62%', top: '52%' },
 ]
 
-// one balloon per year; deterministic scatter across the night sky
-const FIELD = Array.from({ length: 26 }, (_, i) => ({
-  color: PALETTE[i % PALETTE.length],
-  left: `${(i * 37 + 3) % 94}%`,
-  top: `${4 + ((i * 53) % 78)}%`,
-  width: `${8 + (i % 3) * 2.5}vw`,
-}))
+// one balloon per year to pop in the finale: two side columns and a top band, never behind her
+const YEARS = 26
+const FIELD = Array.from({ length: YEARS }, (_, i) => {
+  const row = Math.floor(i / 2)
+  const side = i < 20
+  return {
+    color: PALETTE[i % PALETTE.length],
+    left: side ? `${(i % 2 ? 74 : 1) + ((row * 37) % 3) * 6}%` : `${4 + (i - 20) * 16}%`,
+    top: side ? `${22 + row * 7.3}%` : `${3 + ((i - 20) % 2) * 7}%`,
+    // bounded by height too: a body (1.2× its width) must fit in one 7.3%-tall row
+    width: `min(${9 + (i % 3)}vw, ${5 + (i % 3) * 0.5}svh)`,
+  }
+})
 
 const TITLE_WORDS = ['Happy', 'Birthday,', 'Muskan']
 
@@ -46,6 +52,12 @@ export default function App() {
   const pops = useRef(0)
   const blownRef = useRef(false)
   const [blown, setBlown] = useState(false)
+  const wipe = useRef<HTMLDivElement>(null)
+  const introTl = useRef<gsap.core.Timeline | null>(null)
+  const trigger = useRef<ScrollTrigger | null>(null)
+  const replaying = useRef(false)
+  const years = useRef(0)
+  const counter = useRef<HTMLSpanElement>(null)
 
   // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
   useEffect(() => {
@@ -79,15 +91,29 @@ export default function App() {
 
   const giveFlower = () => applyFlower(q(), reduced())
 
+  const popYear = (balloon: HTMLButtonElement) => {
+    if (!popBalloon(balloon, reduced())) return
+    const left = YEARS - ++years.current
+    counter.current!.textContent = left ? `${left} left` : `all ${YEARS}. happy birthday!`
+    if (!reduced()) laugh(q())
+    if (left) return
+    // the last one: confetti everywhere, then the story starts again on its own
+    ;[0.2, 0.5, 0.8].forEach((fx, i) =>
+      gsap.delayedCall(i * 0.25, () => !reduced() && confetti.current?.burst(innerWidth * fx, innerHeight * (0.3 + i * 0.1))),
+    )
+    gsap.delayedCall(2.2, () => replay(stage.current!.querySelector('[data-her]')!))
+  }
+
   useGSAP(
     () => {
       const sel = gsap.utils.selector(stage.current)
       const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')!
       const isReduced = reduced()
       const tl = isReduced ? buildReducedTimeline(sel) : buildTimeline(sel)
-      const introTl = intro(sel, isReduced)
+      const introAnim = intro(sel, isReduced)
+      introTl.current = introAnim
       let waved = false
-      ScrollTrigger.create({
+      trigger.current = ScrollTrigger.create({
         trigger: track.current,
         start: 'top top',
         end: 'bottom bottom',
@@ -95,7 +121,7 @@ export default function App() {
         animation: tl,
         onUpdate: (self) => {
           // Review Focus 1: a thumb that moves during the intro must not leave a half-faded "hey Muchkan"
-          if (self.progress > 0.02 && introTl.progress() < 1) introTl.progress(1)
+          if (self.progress > 0.02 && introAnim.progress() < 1) introAnim.progress(1)
           const t = self.progress * T.end
           // scrolled past without tapping: finish it for her so nothing is skipped
           if (self.direction > 0 && t > AUTO.pop) {
@@ -132,13 +158,45 @@ export default function App() {
     })
   }
 
-  const replay = () => {
-    resetInteractions(q())
-    pops.current = 0
-    blownRef.current = false
-    setBlown(false)
-    if (lenis.current) lenis.current.scrollTo(0, { duration: 1.6 })
-    else window.scrollTo({ top: 0 })
+  // "Play again": a circle whooshes out of the button and covers the screen; behind it everything
+  // resets and jumps to the top; then it whooshes away and she bounces in again like the first load.
+  const replay = (origin: Element) => {
+    if (replaying.current) return
+    replaying.current = true
+    const w = wipe.current!
+    const r = origin.getBoundingClientRect()
+    const cover = Math.hypot(innerWidth, innerHeight) * 2.2 // diameter that covers the screen from any origin
+    const restart = () => {
+      resetInteractions(q())
+      pops.current = 0
+      years.current = 0
+      counter.current!.textContent = `pop all ${YEARS}`
+      blownRef.current = false
+      setBlown(false)
+      if (lenis.current) lenis.current.scrollTo(0, { immediate: true, force: true })
+      else window.scrollTo({ top: 0 })
+      ScrollTrigger.update()
+      if (trigger.current?.getTween()) trigger.current.getTween().progress(1) // skip the scrub catch-up (none when scrub is `true`)
+      introTl.current?.restart() // under cover, so the reveal shows her bouncing in
+    }
+    const done = () => {
+      replaying.current = false
+    }
+    if (reduced()) {
+      gsap.timeline({ onComplete: done })
+        .set(w, { x: innerWidth / 2, y: innerHeight / 2, width: cover, height: cover, xPercent: -50, yPercent: -50, scale: 1, autoAlpha: 0 })
+        .to(w, { autoAlpha: 1, duration: 0.25, ease: 'soft' })
+        .call(restart)
+        .to(w, { autoAlpha: 0, duration: 0.25, ease: 'soft' }, '+=0.1')
+      return
+    }
+    gsap.timeline({ onComplete: done })
+      .set(w, { x: r.left + r.width / 2, y: r.top + r.height / 2, width: cover, height: cover, xPercent: -50, yPercent: -50, scale: 0, autoAlpha: 1 })
+      .to(w, { scale: 1, duration: 0.65, ease: 'expo.in' }) // whoosh out
+      .call(restart)
+      .set(w, { x: innerWidth / 2, y: innerHeight * 0.1 }, '+=0.15') // recentre while fully covered
+      .to(w, { scale: 0, duration: 0.7, ease: 'expo.out' }) // whoosh away, towards where "hey Muchkan" appears
+      .set(w, { autoAlpha: 0 })
   }
 
   return (
@@ -148,11 +206,19 @@ export default function App() {
           <div className={styles.bg} data-bg="pink" />
           <div className={styles.bg} data-bg="night" />
           <Stars />
-          <div className={styles.field} data-field aria-hidden="true">
+          <div className={styles.field} data-field>
             {FIELD.map((b, i) => (
-              <span key={i} className={styles.fieldBalloon} data-field-balloon style={{ left: b.left, top: b.top, width: b.width }}>
+              <button
+                key={i}
+                type="button"
+                className={styles.fieldBalloon}
+                data-field-balloon
+                style={{ left: b.left, top: b.top, width: b.width }}
+                aria-label={`Pop balloon ${i + 1} of ${YEARS}`}
+                onClick={(e) => popYear(e.currentTarget)}
+              >
                 <Balloon color={b.color} />
-              </span>
+              </button>
             ))}
           </div>
           <div className={styles.her} data-her-wrap>
@@ -224,12 +290,16 @@ export default function App() {
           </div>
 
           <p className={styles.hint} data-hint>scroll</p>
-          <button type="button" className={styles.replay} data-replay onClick={replay}>
+          <p className={styles.counter} data-counter aria-live="polite">
+            <span ref={counter}>pop all {YEARS}</span>
+          </p>
+          <button type="button" className={styles.replay} data-replay onClick={(e) => replay(e.currentTarget)}>
             Play again
           </button>
         </div>
       </main>
       <Confetti ref={confetti} />
+      <div ref={wipe} className={styles.wipe} aria-hidden="true" />
     </>
   )
 }

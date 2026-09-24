@@ -103,7 +103,7 @@ export function resetInteractions(q: Q) {
   gsap.set(q('[data-part="plumeria"]'), { scale: 0, rotation: 0, transformOrigin: '50% 50%' })
   gsap.set(q('[data-part="blush"]'), { opacity: 0.6 })
   gsap.set(q('[data-flame]'), { scale: 1, transformOrigin: '50% 100%' })
-  q('[data-pop-balloon], [data-flower]').forEach((b) => ((b as HTMLButtonElement).disabled = false))
+  q('[data-pop-balloon], [data-field-balloon], [data-flower]').forEach((b) => ((b as HTMLButtonElement).disabled = false))
 }
 
 /** Initial states not covered by a scene's first fromTo. */
@@ -112,6 +112,7 @@ function setup(q: Q) {
   resetInteractions(q)
   gsap.set(q('[data-pop-balloon]'), { y: () => window.innerHeight * 0.9, autoAlpha: 0 })
   gsap.set(q('[data-flower]'), { x: 60, y: -40, autoAlpha: 0 })
+  gsap.set(q('[data-field]'), { autoAlpha: 0 }) // hidden until the finale, so its buttons aren't tab stops
   gsap.set(q('[data-field-balloon]'), { y: () => window.innerHeight * 1.1 })
   gsap.set(q('[data-cake]'), { y: () => window.innerHeight * 0.6, autoAlpha: 0 })
   gsap.set(q('[data-flame-rise]'), { scale: 0, transformOrigin: '50% 100%' })
@@ -183,7 +184,8 @@ function sceneFinale(q: Q) {
     .to(q('[data-her-wrap]'), { y: 0, scale: 1, duration: 0.4 }, 0)
     .fromTo(q('[data-stars]'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.1)
     .fromTo(q('[data-star]'), { y: 30 }, { y: -40, duration: 0.5, ease: 'soft', stagger: { each: 0.01, from: 'random' } }, 0.1)
-    // 26 balloons, one per year, float up into the sky
+    // 26 balloons, one per year, float up into the sky for her to pop
+    .to(q('[data-field]'), { autoAlpha: 1, duration: 0.05 }, 0.05)
     .to(q('[data-field-balloon]'), { y: 0, duration: 0.55, ease: 'soft', stagger: { each: 0.012, from: 'random' } }, 0.05)
     .to(q('[data-word="title"]'), { autoAlpha: 1, duration: 0.01 }, 0.25)
     .fromTo(
@@ -192,7 +194,7 @@ function sceneFinale(q: Q) {
       { autoAlpha: 1, y: 0, scale: 1, duration: 0.25, stagger: 0.015, ease: 'pop' },
       0.25,
     )
-    .fromTo(q('[data-replay]'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.2 }, 0.7)
+    .fromTo(q('[data-replay], [data-counter]'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.2 }, 0.7)
   return tl
 }
 
@@ -222,7 +224,7 @@ export function buildReducedTimeline(q: Q) {
   resetInteractions(q)
   gsap.set(q('[data-pop-balloon], [data-flower], [data-cake], [data-field]'), { autoAlpha: 0 })
   gsap.set(q('[data-flame-rise]'), { scale: 0, transformOrigin: '50% 100%' })
-  gsap.set(q('[data-word="prompt"], [data-word="pops"], [data-word="flower"], [data-word="bloom"], [data-word="wish"], [data-word="title"], [data-replay]'), { autoAlpha: 0 })
+  gsap.set(q('[data-word="prompt"], [data-word="pops"], [data-word="flower"], [data-word="bloom"], [data-word="wish"], [data-word="title"], [data-replay], [data-counter]'), { autoAlpha: 0 })
 
   const tl = gsap.timeline({ defaults: { ease: 'soft', duration: 0.3 } })
   const fade = (sel: string, at: number, on = true) => tl.to(q(sel), { autoAlpha: on ? 1 : 0 }, at)
@@ -248,7 +250,7 @@ export function buildReducedTimeline(q: Q) {
   fade('[data-bg="night"]', T.finale)
   fade('[data-stars], [data-field]', T.finale + 0.2)
   fade('[data-word="title"]', T.finale + 0.3)
-  fade('[data-replay]', T.finale + 0.6)
+  fade('[data-replay], [data-counter]', T.finale + 0.6)
   return pinLength(tl)
 }
 

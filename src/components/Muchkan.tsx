@@ -68,7 +68,7 @@ export default function Muchkan() {
           <ellipse cx="128" cy="130" rx="7" ry="4" fill="#F29B9B" />
         </g>
         <path d="M99 118 Q102 124 98 126" stroke="#C98C6B" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <circle cx="96" cy="124" r="1.4" fill="#DADAE3" />
+        <circle cx="104" cy="123" r="1.4" fill="#DADAE3" />
         <g data-part="mouth">
           <path d="M88 136 Q100 145 112 136" stroke="#8A4A3E" strokeWidth="2.6" fill="none" strokeLinecap="round" />
         </g>

@@ -118,10 +118,39 @@
   z-index: var(--z-balloons);
   pointer-events: none;
 }
+.field { z-index: var(--z-cake); } /* above her edges, so every balloon can be tapped */
 .fieldBalloon {
   position: absolute;
   display: block;
+  min-width: 44px;
   max-width: 90px;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+}
+.fieldBalloon:disabled { cursor: default; }
+/* tap area = the balloon itself; the string hangs outside the button and lets taps through,
+   so a balloon's string never blocks the one below it */
+.fieldBalloon,
+.popBalloon { aspect-ratio: 60 / 72; }
+.fieldBalloon svg,
+.popBalloon svg { pointer-events: none; }
+
+.counter {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 92px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  color: var(--ink-on-night);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .titleWord { display: inline-block; white-space: nowrap; }
 .words [data-letter] { display: inline-block; }
@@ -159,6 +188,19 @@
   font-weight: 500;
   transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
 }
+/* the "Play again" whoosh: a circle GSAP positions (x/y) and scales from the button */
+.wipe {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: var(--z-wipe);
+  border-radius: 50%;
+  background: var(--bg-cream);
+  visibility: hidden; /* centred on its x/y by GSAP (xPercent/yPercent): GSAP drops a CSS translate's % y */
+  opacity: 0;
+  pointer-events: none;
+}
+
 .replay:hover,
 .replay:focus-visible {
   background: var(--ink-on-night);
