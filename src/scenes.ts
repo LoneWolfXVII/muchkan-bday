@@ -152,23 +152,26 @@ function sceneFlower(q: Q) {
   return tl
 }
 
+const petalDelay = (_: number, el: Element) => Number((el as HTMLElement).dataset.delay)
+
 function scenePetals(q: Q) {
   const tl = gsap.timeline()
   const petals = q('[data-petal]')
   tl.to(q('[data-bg="pink"]'), { autoAlpha: 1, duration: 0.4 }, 0)
-    // petals start hidden (fromTo renders its from-state immediately and on reverse), appear, fall, fade
-    .fromTo(petals, { autoAlpha: 0, x: 0, y: 0, rotation: 0 }, { autoAlpha: 1, duration: 0.05, stagger: 0.02 }, 0.05)
+    // petals start hidden (fromTo renders its from-state immediately and on reverse), appear, fall, fade.
+    // Each petal carries its own delay / fall / drift / spin (components/Petals), so the three tweens agree.
+    .fromTo(petals, { autoAlpha: 0, x: 0, y: 0, rotation: 0 }, { autoAlpha: 1, duration: 0.05, stagger: petalDelay }, 0.05)
     .to(
       petals,
       {
-        y: (i: number) => window.innerHeight * (0.9 + (i % 4) * 0.12),
-        x: (i: number) => (i % 2 ? 1 : -1) * (20 + (i % 5) * 12),
-        rotation: (i: number) => (i % 2 ? 1 : -1) * (160 + i * 25),
-        duration: 0.75, ease: 'none', stagger: 0.02,
+        y: (_: number, el: HTMLElement) => window.innerHeight * Number(el.dataset.fall),
+        x: (_: number, el: HTMLElement) => Number(el.dataset.drift),
+        rotation: (_: number, el: HTMLElement) => Number(el.dataset.spin),
+        duration: 0.6, ease: 'none', stagger: petalDelay,
       },
       0.05,
     )
-    .to(petals, { autoAlpha: 0, duration: 0.15, stagger: 0.02 }, 0.7)
+    .to(petals, { autoAlpha: 0, duration: 0.1, stagger: petalDelay }, 0.6)
   show(tl, q('[data-word="bloom"]'), 0.15)
   hide(tl, q('[data-word="bloom"]'), 0.9)
   return tl

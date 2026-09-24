@@ -1,19 +1,32 @@
 .petals {
   position: absolute;
-  inset: 0 0 auto;
-  height: 0;
-  z-index: var(--z-petals);
+  inset: 0;
   pointer-events: none;
 }
+.front { z-index: var(--z-petals); } /* in front of her */
+.back { z-index: var(--z-balloons); } /* behind her */
 
 .petals i {
   position: absolute;
-  top: -40px;
-  width: 14px;
-  height: 24px;
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  background: #FFF9F0;
-  box-shadow: inset 0 0 0 1px #E9D9C4;
+  display: block;
   visibility: hidden;
   opacity: 0;
 }
+.white {
+  width: calc(14px * var(--s));
+  height: calc(24px * var(--s));
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #FFF9F0;
+  box-shadow: inset 0 0 0 1px #E9D9C4;
+}
+.pink {
+  width: calc(13px * var(--s));
+  height: calc(17px * var(--s));
+  border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+  background: #D94FA4; /* deeper than the pink sky so they read */
+}
+.flower {
+  width: calc(28px * var(--s));
+  height: calc(28px * var(--s));
+}
+.flower svg { display: block; width: 100%; height: 100%; overflow: visible; }
