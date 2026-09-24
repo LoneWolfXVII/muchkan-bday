@@ -2,6 +2,20 @@ import styles from './Muchkan.module.css'
 
 const PETAL_ANGLES = [0, 72, 144, 216, 288]
 
+/** The white plumeria from her photo, centred on (0,0), about 46 units across. Also used by the flower gift button. */
+export function Plumeria() {
+  return (
+    <>
+      <g stroke="#E9D9C4" strokeWidth="1" fill="#FFF9F0">
+        {PETAL_ANGLES.map((a) => (
+          <ellipse key={a} cx="0" cy="-11" rx="6.5" ry="12" transform={`rotate(${a})`} />
+        ))}
+      </g>
+      <circle r="5" fill="#F6C343" />
+    </>
+  )
+}
+
 export default function Muchkan() {
   return (
     <svg className={styles.her} viewBox="30 20 140 220" aria-hidden="true" data-her>
@@ -49,8 +63,10 @@ export default function Muchkan() {
           <rect x="104" y="96" width="32" height="27" rx="11" fill="#fff" fillOpacity=".18" stroke="#8E8E99" strokeWidth="2.5" />
           <path d="M96 105 Q100 101 104 105" stroke="#8E8E99" strokeWidth="2.5" fill="none" />
         </g>
-        <ellipse cx="72" cy="130" rx="7" ry="4" fill="#F29B9B" opacity=".6" />
-        <ellipse cx="128" cy="130" rx="7" ry="4" fill="#F29B9B" opacity=".6" />
+        <g data-part="blush" opacity=".6">
+          <ellipse cx="72" cy="130" rx="7" ry="4" fill="#F29B9B" />
+          <ellipse cx="128" cy="130" rx="7" ry="4" fill="#F29B9B" />
+        </g>
         <path d="M99 118 Q102 124 98 126" stroke="#C98C6B" strokeWidth="2" fill="none" strokeLinecap="round" />
         <circle cx="96" cy="124" r="1.4" fill="#DADAE3" />
         <g data-part="mouth">
@@ -59,12 +75,7 @@ export default function Muchkan() {
 
         <g transform="translate(92 44) rotate(-15)">
           <g data-part="plumeria">
-            <g stroke="#E9D9C4" strokeWidth="1" fill="#FFF9F0">
-              {PETAL_ANGLES.map((a) => (
-                <ellipse key={a} cx="0" cy="-11" rx="6.5" ry="12" transform={`rotate(${a})`} />
-              ))}
-            </g>
-            <circle r="5" fill="#F6C343" />
+            <Plumeria />
           </g>
         </g>
 

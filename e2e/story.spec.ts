@@ -1,14 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 
-// Scene start times from src/scenes.ts T (end = 6), sampled a little inside each scene.
-const SCENES = [
-  { name: '0-hello', t: 0, text: 'hey Muchkan' },
-  { name: '1-balloons', t: 1.2, text: 'look up' },
-  { name: '2-pops', t: 2.9, text: 'day' },
-  { name: '3-petals', t: 3.7, text: 'bloom' },
-  { name: '4-cake', t: 4.9, text: 'make a wish' },
-  { name: '5-finale', t: 6, heading: 'Happy Birthday, Muskan' },
-]
+// Scene times from src/scenes.ts T (end = 6.2), sampled a little inside each scene.
+const HELLO_T = 0
+const BALLOONS_T = 1.2
+const FLOWER_T = 2.5
+const PETALS_T = 3.5
 const CAKE_T = 4.9
 const END = 6.2 // src/scenes.ts T.end
 
@@ -22,8 +18,12 @@ async function scrollTo(page: Page, t: number) {
   await page.evaluate((p) => {
     window.scrollTo(0, p * (document.documentElement.scrollHeight - window.innerHeight))
   }, t / END)
-  await page.waitForTimeout(800) // lenis + scrub settle
+  await page.waitForTimeout(900) // lenis + scrub (0.6s catch-up) settle
 }
+
+/** Width of the plumeria in her hair (0 until it is placed). */
+const flowerInHair = (page: Page) =>
+  page.evaluate(() => document.querySelector('[data-part="plumeria"]')!.getBoundingClientRect().width)
 
 for (const vp of VIEWPORTS) {
   for (const reduced of [false, true]) {
@@ -34,6 +34,9 @@ for (const vp of VIEWPORTS) {
       const errors: string[] = []
       page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
       page.on('pageerror', (e) => errors.push(e.message))
+      const shot = (name: string) => page.screenshot({ path: `e2e/shots/${label}/${name}.png` })
+      const noOverflow = async () =>
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
       await page.setViewportSize({ width: vp.width, height: vp.height })
       await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' })
@@ -47,55 +50,110 @@ for (const vp of VIEWPORTS) {
         const el = document.activeElement
         return el instanceof HTMLButtonElement ? (el.getAttribute('aria-label') ?? el.textContent ?? '') : ''
       })
-      expect(focusedLabel).not.toMatch(/Blow out the candles|Play again/)
+      expect(focusedLabel).not.toMatch(/Pop the|Wear the flower|Blow out the candles|Play again/)
 
       // Review Focus 1: scroll during the intro, then back to the top
       await page.waitForTimeout(300)
-      await scrollTo(page, 1.2)
-      await scrollTo(page, 0)
+      await scrollTo(page, BALLOONS_T)
+      await scrollTo(page, HELLO_T)
       await expect(page.getByText('hey Muchkan', { exact: true })).toBeVisible()
+      expect(await flowerInHair(page)).toBe(0) // she starts without the flower
       await page.waitForTimeout(1200)
+      await shot('0-hello')
+      await noOverflow()
 
-      for (const s of SCENES) {
-        await scrollTo(page, s.t)
-        if (s.text) await expect(page.getByText(s.text, { exact: true })).toBeVisible()
-        if (s.heading) await expect(page.getByRole('heading', { level: 1, name: s.heading })).toBeVisible()
-        await page.screenshot({ path: `e2e/shots/${label}/${s.name}.png` })
-        // Review Focus 4: nothing widens the page
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+      // balloons: she pops all three, each reveals a word
+      await scrollTo(page, BALLOONS_T)
+      await expect(page.getByText('pop the balloons', { exact: false })).toBeVisible()
+      await shot('1-balloons')
+      for (const name of ['lilac', 'yellow', 'pink']) {
+        const b = page.getByRole('button', { name: `Pop the ${name} balloon` })
+        const box = (await b.boundingBox())!
+        expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
+        await b.click()
+        await page.waitForTimeout(250)
       }
+      await page.waitForTimeout(600)
+      await expect(page.getByText('day', { exact: true })).toBeVisible()
+      await expect(page.getByRole('button', { name: /Pop the/ })).toHaveCount(3) // still in the DOM…
+      expect(await page.locator('[data-pop-balloon]:not([disabled])').count()).toBe(0) // …but no longer tappable
+      await shot('1b-popped')
+      await noOverflow()
 
+      // flower: tap it and it goes into her hair
+      await scrollTo(page, FLOWER_T)
+      await expect(page.getByText('a flower for you', { exact: false })).toBeVisible()
+      await shot('2-flower')
+      await page.getByRole('button', { name: 'Wear the flower' }).click()
+      await page.waitForTimeout(1400)
+      await expect(page.getByText('there. perfect.', { exact: true })).toBeVisible()
+      expect(await flowerInHair(page)).toBeGreaterThan(10)
+      await shot('2b-flower-on')
+      await noOverflow()
+
+      await scrollTo(page, PETALS_T)
+      await expect(page.getByText('bloom', { exact: true })).toBeVisible()
+      await shot('3-petals')
+      await noOverflow()
+
+      // cake: hit target, double tap, 26, and it survives a re-scroll (Review Focus 2 and 3)
+      await scrollTo(page, CAKE_T)
+      await expect(page.getByText('make a wish', { exact: false })).toBeVisible()
+      await shot('4-cake')
+      const cake = page.getByRole('button', { name: 'Blow out the candles' })
+      const box = (await cake.boundingBox())!
+      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
+      await cake.dblclick()
+      const blownCake = page.getByRole('button', { name: 'Candles out. Wish made' })
+      await expect(blownCake).toBeVisible()
+      await page.waitForTimeout(900)
+      await expect(page.locator('[data-age-in]')).toBeVisible()
+      await shot('4b-26')
+      await scrollTo(page, PETALS_T)
+      await scrollTo(page, CAKE_T)
+      await expect(blownCake).toBeVisible()
+      await noOverflow()
+
+      await scrollTo(page, END)
+      await expect(page.getByRole('heading', { level: 1, name: 'Happy Birthday, Muskan' })).toBeVisible()
+      await page.waitForTimeout(1500) // let the time-based wave finish
+      await shot('5-finale')
+      await noOverflow()
       expect(await page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute('content'))).toBe('#33254F')
       const replay = page.getByRole('button', { name: 'Play again' })
       await expect(replay).toBeVisible()
       const replayBox = (await replay.boundingBox())!
       expect(Math.min(replayBox.width, replayBox.height)).toBeGreaterThanOrEqual(44)
 
-      // cake: hit target, tap, double tap, and survives a re-scroll (Review Focus 2 and 3)
-      await scrollTo(page, CAKE_T)
-      const cake = page.getByRole('button', { name: 'Blow out the candles' })
-      await expect(cake).toBeVisible()
-      const box = (await cake.boundingBox())!
-      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
-      await cake.dblclick()
-      const blownCake = page.getByRole('button', { name: 'Candles out. Wish made' })
-      await expect(blownCake).toBeVisible()
-      await page.waitForTimeout(600)
-      await page.screenshot({ path: `e2e/shots/${label}/4b-blown.png` })
-      await scrollTo(page, 3.7)
-      await scrollTo(page, CAKE_T)
-      await expect(blownCake).toBeVisible()
-
-      // replay
-      await scrollTo(page, END)
+      // replay resets everything she tapped
       await replay.click()
       await page.waitForTimeout(2200)
       expect(await page.evaluate(() => window.scrollY)).toBeLessThan(5)
+      expect(await flowerInHair(page)).toBe(0)
+      await scrollTo(page, BALLOONS_T)
+      await expect(page.getByRole('button', { name: 'Pop the lilac balloon' })).toBeEnabled()
+      await scrollTo(page, CAKE_T)
+      await expect(page.getByRole('button', { name: 'Blow out the candles' })).toBeVisible()
 
       expect(errors).toEqual([])
     })
   }
 }
+
+test('scrolling past without tapping pops the balloons and places the flower', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await page.waitForTimeout(1200)
+  await scrollTo(page, BALLOONS_T)
+  await scrollTo(page, 2.3) // past the auto-pop point, into the flower scene
+  await page.waitForTimeout(600)
+  await scrollTo(page, 1.6)
+  await expect(page.getByText('day', { exact: true })).toBeVisible()
+  expect(await flowerInHair(page)).toBe(0)
+  await scrollTo(page, PETALS_T) // past the auto-flower point
+  await page.waitForTimeout(900)
+  expect(await flowerInHair(page)).toBeGreaterThan(10)
+})
 
 // Final-review findings, iPhone only
 test.describe('review fixes', () => {
@@ -131,14 +189,14 @@ test.describe('review fixes', () => {
     await page.waitForTimeout(1200)
     await scrollTo(page, 1.2)
     const knots = await page.evaluate(() =>
-      Array.from(document.querySelectorAll<SVGGElement>('[data-balloon] [data-body]')).map((body) => {
-        const svg = body.ownerSVGElement!
-        const m = svg.getCTM()!.inverse().multiply(body.getCTM()!)
+      Array.from(document.querySelectorAll<SVGGElement>('[data-pop-balloon] [data-body]')).map((body) => {
+        const sway = body.parentElement as unknown as SVGGElement
+        const m = sway.getCTM()!.inverse().multiply(body.getCTM()!)
         const p = new DOMPoint(30, 74).matrixTransform(m)
         return [p.x, p.y]
       }),
     )
-    // the sway pivots at the knot, so the knot stays put whatever the rotation
+    // the body pivots at its knot, so the knot stays on the string whatever the pop or sway
     for (const [x, y] of knots) {
       expect(Math.abs(x - 30)).toBeLessThan(0.5)
       expect(Math.abs(y - 74)).toBeLessThan(0.5)
@@ -164,7 +222,7 @@ test.describe('review fixes', () => {
     await page.goto('/')
     await page.waitForTimeout(1200)
     await toFraction(page, 0.97)
-    await page.waitForTimeout(1500)
+    await page.waitForTimeout(2500) // the finale wave is time-based (~1.65s)
     const state = await page.evaluate(() => {
       const head = document.querySelector<SVGGElement>('[data-part="head"]')!
       const m = head.transform.baseVal.consolidate()?.matrix

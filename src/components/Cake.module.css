@@ -1,10 +1,9 @@
 .cake {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 6svh);
-  translate: -50% 0; /* GSAP animates `transform` (y); the CSS translate composes with it */
-  z-index: var(--z-cake);
-  width: clamp(160px, 42vw, 280px);
+  bottom: -14%; /* relative to her wrapper: the top tier tucks under her shirt */
+  translate: -50% 0; /* GSAP folds this into xPercent: -50 */
+  width: 70%;
   min-height: 44px;
   padding: 0;
   border: 0;

@@ -1,8 +1,6 @@
 .balloon {
-  position: absolute;
-  z-index: var(--z-balloons);
-  width: clamp(64px, 16vw, 120px);
+  display: block;
+  width: 100%;
   height: auto;
   overflow: visible;
-  pointer-events: none;
 }
