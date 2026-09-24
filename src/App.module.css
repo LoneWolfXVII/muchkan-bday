@@ -24,7 +24,6 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  translate: -50% -42%;
   z-index: var(--z-her);
   width: min(66vw, 44svh);
 }

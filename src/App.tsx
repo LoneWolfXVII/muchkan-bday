@@ -1,11 +1,19 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 import Muchkan from './components/Muchkan'
 import Balloon from './components/Balloon'
 import Cake from './components/Cake'
 import Confetti, { type ConfettiHandle } from './components/Confetti'
 import Petals from './components/Petals'
 import Stars from './components/Stars'
+import { buildReducedTimeline, buildTimeline, intro, themeColor } from './scenes'
 import styles from './App.module.css'
+
+gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const BALLOONS = [
   { color: '#C9B3DB', left: '12%', top: '10%' },
@@ -15,14 +23,77 @@ const BALLOONS = [
 
 const TITLE_WORDS = ['Happy', 'Birthday,', 'Muskan']
 
+const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export default function App() {
   const track = useRef<HTMLElement>(null)
   const stage = useRef<HTMLDivElement>(null)
+  const lenis = useRef<Lenis | null>(null)
   const confetti = useRef<ConfettiHandle>(null)
   const [blown, setBlown] = useState(false)
 
-  const blow = () => setBlown(true) // replaced in Task 8
-  const replay = () => window.scrollTo({ top: 0 }) // replaced in Task 6
+  // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
+  useEffect(() => {
+    if (reduced()) return
+    const l = new Lenis()
+    l.on('scroll', ScrollTrigger.update)
+    const tick = (time: number) => l.raf(time * 1000)
+    gsap.ticker.add(tick)
+    gsap.ticker.lagSmoothing(0)
+    lenis.current = l
+    return () => {
+      gsap.ticker.remove(tick)
+      l.destroy()
+      lenis.current = null
+    }
+  }, [])
+
+  useGSAP(
+    () => {
+      const q = gsap.utils.selector(stage.current)
+      const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')!
+      const isReduced = reduced()
+      const tl = isReduced ? buildReducedTimeline(q) : buildTimeline(q)
+      const introTl = isReduced ? null : intro(q)
+      ScrollTrigger.create({
+        trigger: track.current,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: true,
+        animation: tl,
+        onUpdate: (self) => {
+          // Review Focus 1: a thumb that moves during the intro must not leave a half-faded "hey Muchkan"
+          if (introTl && self.progress > 0.02 && introTl.progress() < 1) introTl.progress(1)
+          const c = themeColor(self.progress)
+          if (meta.content !== c) meta.content = c
+        },
+      })
+    },
+    { scope: stage },
+  )
+
+  const blow = () => {
+    if (blown) return // Review Focus 3: no double burst
+    setBlown(true)
+    const btn = stage.current!.querySelector<HTMLButtonElement>('[data-cake]')!
+    gsap.to(btn.querySelectorAll('[data-flame]'), {
+      scale: 0,
+      transformOrigin: '50% 100%',
+      duration: 0.35,
+      stagger: 0.06,
+      ease: 'power2.in',
+      onComplete: () => {
+        if (reduced()) return
+        const r = btn.getBoundingClientRect()
+        confetti.current?.burst(r.left + r.width / 2, r.top)
+      },
+    })
+  }
+
+  const replay = () => {
+    if (lenis.current) lenis.current.scrollTo(0, { duration: 1.6 })
+    else window.scrollTo({ top: 0 })
+  }
 
   return (
     <>

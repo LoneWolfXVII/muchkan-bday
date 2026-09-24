@@ -2,6 +2,7 @@
 //   step = <t>            scroll to timeline second t (0..6)
 //        | click:<name>   click the button with that accessible name
 //        | shot:<file>    screenshot to e2e/shots/<file>.png
+//        | eval:<js>      print the value of a page expression
 // run `npm run build` first; run from the project root.
 import { spawn } from 'node:child_process'
 import { chromium } from 'playwright'
@@ -22,7 +23,8 @@ await page.goto('http://localhost:4173')
 await page.waitForTimeout(1800)
 
 for (const step of args.filter((a) => a !== '--reduce')) {
-  if (step.startsWith('click:')) await page.getByRole('button', { name: step.slice(6) }).click()
+  if (step.startsWith('eval:')) console.log(step.slice(5), '=>', await page.evaluate(step.slice(5)))
+  else if (step.startsWith('click:')) await page.getByRole('button', { name: step.slice(6) }).click()
   else if (step.startsWith('shot:')) await page.screenshot({ path: `e2e/shots/${step.slice(5)}.png` })
   else await page.evaluate((t) => window.scrollTo(0, (t / 6) * (document.documentElement.scrollHeight - innerHeight)), Number(step))
   await page.waitForTimeout(800)
