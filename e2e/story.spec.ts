@@ -227,12 +227,15 @@ test.describe('review fixes', () => {
         replay: getComputedStyle(document.querySelector('[data-replay]')!).opacity,
         headSin: m ? m.b : 0,
         htmlBg: getComputedStyle(document.documentElement).backgroundColor,
+        bodyBg: getComputedStyle(document.body).backgroundColor,
       }
     })
     expect(state.replay).toBe('1')
     expect(Math.abs(state.headSin)).toBeLessThan(0.01)
     // rubber-band overscroll shows the html background: it must match the night scene
-    expect(state.htmlBg).toBe('rgb(51, 37, 79)')
+    // page and body backgrounds stay identical (cream): scene colour lives only in the full-screen layers.
+    // A per-scene html colour showed as a band below the body on phones when the browser bars hid.
+    expect(state.htmlBg).toBe(state.bodyBg)
   })
 })
 
@@ -314,6 +317,23 @@ test.describe('real phones', () => {
       document.querySelector('[data-scroller]')!.getBoundingClientRect().bottom,
     ])
     expect(stageBottom).toBeGreaterThanOrEqual(screenBottom)
+  })
+
+  test('finale balloons sit behind her, and the bottom text follows the visible screen', async ({ page }) => {
+    await page.goto('/')
+    const [field, her] = await page.evaluate(() => [
+      Number(getComputedStyle(document.querySelector('[data-field]')!).zIndex),
+      Number(getComputedStyle(document.querySelector('[data-her-wrap]')!).zIndex),
+    ])
+    expect(field).toBeLessThan(her) // (taps reach them through her: see the pop-all-26 test)
+    const bottoms = await page.evaluate(() =>
+      Array.from(document.styleSheets)
+        .flatMap((sheet) => Array.from(sheet.cssRules))
+        .filter((r): r is CSSStyleRule => r instanceof CSSStyleRule && /^\._(hint|counter|replay)_\w+$/.test(r.selectorText))
+        .map((r) => r.style.bottom),
+    )
+    expect(bottoms).toHaveLength(3)
+    for (const b of bottoms) expect(b).toContain('100dvh') // not svh: with the bars hidden that lifted it onto her shirt
   })
 
   test('tapping shows no square highlight box', async ({ page }) => {

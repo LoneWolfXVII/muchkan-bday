@@ -164,10 +164,7 @@ export default function App() {
           if (t < T.finale) waved = false
           if (stopMic.current && (t < T.cake || t >= T.finale)) endMic('idle') // mic off as soon as she leaves the cake
           const c = themeColor(self.progress)
-          if (meta.content !== c) {
-            meta.content = c
-            document.documentElement.style.background = c // iOS rubber-band overscroll shows the html background
-          }
+          if (meta.content !== c) meta.content = c // browser chrome only; the page itself stays cream underneath
         },
       })
     },

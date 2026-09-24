@@ -15,7 +15,7 @@ while (!(await fetch('http://localhost:4173').then((r) => r.ok).catch(() => fals
 }
 
 const browser = await chromium.launch()
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: reduce ? 'reduce' : 'no-preference' })
+const page = await browser.newPage({ viewport: { width: Number(process.env.W || 390), height: Number(process.env.H || 844) }, reducedMotion: reduce ? 'reduce' : 'no-preference' })
 const errors = []
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
 page.on('pageerror', (e) => errors.push(e.message))
