@@ -1,0 +1,8 @@
+.balloon {
+  position: absolute;
+  z-index: var(--z-balloons);
+  width: clamp(64px, 16vw, 120px);
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+}

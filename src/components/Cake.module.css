@@ -1,0 +1,25 @@
+.cake {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 6svh);
+  translate: -50% 0; /* GSAP animates `transform` (y); the CSS translate composes with it */
+  z-index: var(--z-cake);
+  width: clamp(160px, 42vw, 280px);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.cake svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.cake [data-flame-rise],
+.cake [data-flame] {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
