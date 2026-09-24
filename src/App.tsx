@@ -112,7 +112,7 @@ export default function App() {
           <Cake blown={blown} onBlow={blow} />
 
           <div className={styles.words}>
-            <p data-word="hello" translate="no">hey Muchkan</p>
+            <p data-word="hello" translate="no"><span data-hello-in>hey Muchkan</span></p>
             <p data-word="lookup">look up</p>
             <p data-word="pops">
               <span data-pop>it’s</span> <span data-pop>your</span> <span data-pop>day</span>

@@ -40,7 +40,8 @@ export function intro(q: Q) {
   tl.from(q('[data-her]'), {
     y: 80, scaleX: 1.25, scaleY: 0.7, autoAlpha: 0, transformOrigin: '50% 100%', duration: 0.9, ease: 'pop',
   })
-    .from(q('[data-word="hello"]'), { y: 24, autoAlpha: 0, duration: 0.6, ease: 'soft' }, '-=0.4')
+    // the intro animates an inner span; the scrub owns the outer <p>, so the two never record each other's values
+    .from(q('[data-hello-in]'), { y: 24, autoAlpha: 0, duration: 0.6, ease: 'soft' }, '-=0.4')
     .to(q('[data-part="head"]'), { rotation: -7, ...HEAD, duration: 0.5, ease: 'soft' }, '-=0.2')
     .to(q('[data-part="head"]'), { rotation: 0, ...HEAD, duration: 0.7, ease: 'pop' })
 
