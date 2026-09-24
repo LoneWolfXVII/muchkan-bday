@@ -1,0 +1,90 @@
+.track {
+  height: 700svh; /* 600svh of scroll = 6 timeline seconds (src/scenes.ts T) */
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  isolation: isolate;
+}
+
+.bg {
+  position: fixed; /* covers the dynamic viewport even when iOS chrome collapses */
+  inset: 0;
+  z-index: var(--z-bg);
+  opacity: 0;
+  pointer-events: none;
+}
+.bg[data-bg='pink'] { background: var(--bg-pink); }
+.bg[data-bg='night'] { background: var(--bg-night); }
+
+.her {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -42%;
+  z-index: var(--z-her);
+  width: min(66vw, 44svh);
+}
+
+.words {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 7svh);
+  left: 16px;
+  right: 16px;
+  z-index: var(--z-words);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+.words > * {
+  grid-area: 1 / 1;
+  font-family: var(--font-display);
+  font-size: var(--step-word);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.words h1 {
+  font-size: var(--step-title);
+  color: var(--ink-on-night);
+}
+.words [data-pop] { display: inline-block; }
+.titleWord { display: inline-block; white-space: nowrap; }
+.words [data-letter] { display: inline-block; }
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: bob 1.3s var(--ease-bounce) infinite alternate;
+}
+@keyframes bob {
+  to { transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint { animation: none; }
+}
+
+.replay {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 28px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  min-height: 48px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 2px solid var(--ink-on-night);
+  background: transparent;
+  color: var(--ink-on-night);
+  font-weight: 500;
+}
