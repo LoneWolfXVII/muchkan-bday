@@ -40,13 +40,12 @@ export function themeColor(progress: number) {
  * - taps own inner state: [data-body]/[data-shard]/[data-string], [data-pop], [data-prompt-in],
  *   [data-flower-fly], [data-flower-ask]/[data-flower-done], the head's plumeria, [data-flame],
  *   [data-wish-in]/[data-age-in]
- * - time-based loops own idle motion: [data-sway], [data-flower-bob], blink, laugh and wave
+ * - time-based: blink, laugh and wave (GSAP); balloon sway and the flower bob/glow (CSS keyframes)
  * Nothing that oscillates is tied to scroll: a scrubbed wobble flickers with every scroll step.
  */
 
 const HEAD = { svgOrigin: '100 175' } // neck pivot in viewBox units
 const KNOT = { svgOrigin: '30 74' } // balloon body pivot (the knot), in the balloon's viewBox
-const STRING_END = { svgOrigin: '30 128' } // balloons sway from the bottom of the string
 
 // Word reveal/hide. `show` is the one fromTo a word gets; every later tween on it is a `to`.
 function show(tl: gsap.core.Timeline, targets: gsap.TweenTarget, at: number) {
@@ -77,16 +76,7 @@ export function intro(q: Q, reduced: boolean) {
   gsap.timeline({ repeat: -1, repeatDelay: 3.2, delay: 1.6 }).to(q('[data-part="eyesClosed"]'), {
     scaleY: 0.25, transformOrigin: '50% 50%', duration: 0.09, yoyo: true, repeat: 1, ease: 'soft',
   })
-  // pendulum sway (sine is the physics exception to the no-ease-in-out rule)
-  q('[data-sway]').forEach((sway, i) => {
-    gsap.fromTo(
-      sway,
-      { rotation: -4, ...STRING_END },
-      { rotation: 4, ...STRING_END, duration: 1.5 + (i % 5) * 0.25, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: -i * 0.4 },
-    )
-  })
-  gsap.to(q('[data-flower-bob]'), { y: -10, rotation: 8, duration: 1.4, repeat: -1, yoyo: true, ease: 'sine.inOut' })
-  gsap.to(q('[data-flower-glow]'), { scale: 1.25, opacity: 0.35, duration: 1.4, repeat: -1, yoyo: true, ease: 'sine.inOut' })
+  // balloon sway and the flower's bob/glow are CSS animations (compositor thread, no per-frame JS or SVG repaint)
   return tl
 }
 
@@ -349,7 +339,7 @@ export function applyFlower(q: Q, reduced: boolean) {
   const plumeria: Element = q('[data-part="plumeria"]')[0]
   const done = () => {
     gsap.set(fly, { autoAlpha: 0 })
-    gsap.set(q('[data-flower-glow]'), { visibility: 'hidden' }) // its opacity belongs to the idle pulse
+    gsap.set(q('[data-flower-glow]'), { visibility: 'hidden' }) // its opacity belongs to the CSS pulse
     gsap.fromTo(plumeria, { scale: reduced ? 1 : 0.5 }, { scale: 1, transformOrigin: '50% 50%', duration: 0.5, ease: 'pop' })
     gsap.to(q('[data-flower-ask]'), { autoAlpha: 0, y: -16, duration: 0.25, ease: 'soft' })
     gsap.fromTo(q('[data-flower-done]'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'pop', delay: 0.1 })

@@ -44,7 +44,9 @@ body {
 body::after {
   content: '';
   position: fixed;
-  inset: 0;
+  inset: 0 0 auto; /* not inset: 0: on phones that is the screen with the bars showing, and hiding them left an uncovered strip */
+  height: 100vh;
+  height: 100lvh;
   z-index: var(--z-grain);
   pointer-events: none;
   opacity: 0.04;

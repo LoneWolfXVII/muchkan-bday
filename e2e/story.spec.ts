@@ -302,10 +302,12 @@ test.describe('real phones', () => {
     const heights = await page.evaluate(() =>
       Array.from(document.styleSheets)
         .flatMap((sheet) => Array.from(sheet.cssRules))
-        .filter((r): r is CSSStyleRule => r instanceof CSSStyleRule && /_stage_/.test(r.selectorText))
-        .map((r) => r.style.height),
+        .filter((r): r is CSSStyleRule => r instanceof CSSStyleRule && /^\._(stage|scroller|bg|confetti)_\w+$/.test(r.selectorText) && !!r.style.height)
+        .map((r) => `${r.selectorText.match(/_(stage|scroller|bg|confetti)_/)![1]}:${r.style.height}`)
+        .sort(),
     )
-    expect(heights).toEqual(['100lvh'])
+    // the stage and every full-screen fixed layer (else hiding the bars leaves an uncovered band)
+    expect(heights).toEqual(['bg:100lvh', 'confetti:100lvh', 'scroller:100lvh', 'stage:100lvh'])
     // and it covers the whole scroller
     const [stageBottom, screenBottom] = await page.evaluate(() => [
       document.querySelector('[data-scroller] main > div')!.getBoundingClientRect().bottom,

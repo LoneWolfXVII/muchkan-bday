@@ -1,6 +1,8 @@
 .confetti {
   position: fixed;
-  inset: 0;
+  inset: 0 0 auto;
+  height: 100vh;
+  height: 100lvh;
   z-index: var(--z-confetti);
   pointer-events: none;
   overflow: clip;
