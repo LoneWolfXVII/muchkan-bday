@@ -95,10 +95,10 @@ export default function App() {
     confetti.current?.burst(r.left + r.width / 2, r.top + r.height / 2)
   }
 
-  /** `auto`: popped for her because she scrolled past; the word still shows, but she doesn't react */
-  const pop = (balloon: HTMLButtonElement, auto = false) => {
+  /** `quiet`: popped for her after she scrolled past the scene; the word still shows, but she doesn't react */
+  const pop = (balloon: HTMLButtonElement, quiet = false) => {
     if (!popBalloon(balloon, reduced())) return
-    if (!reduced() && !auto) laugh(q(), pops.current === 0 ? 'laugh' : undefined)
+    if (!reduced() && !quiet) laugh(q(), pops.current === 0 ? 'laugh' : undefined)
     revealPopWord(q(), pops.current++)
   }
 
@@ -137,10 +137,15 @@ export default function App() {
           if (self.progress > 0.02 && introAnim.progress() < 1) introAnim.progress(1)
           const t = self.progress * T.end
           // scrolled past without tapping: finish it for her so nothing is skipped
-          if (self.direction > 0 && t > AUTO.pop) {
-            sel('[data-pop-balloon]')
-              .filter((b) => !(b as HTMLButtonElement).disabled)
-              .forEach((b, i) => gsap.delayedCall(i * 0.15, () => pop(b as HTMLButtonElement, true)))
+          if (self.direction > 0) {
+            // each threshold she scrolls past pops the next balloon she hasn't tapped
+            const due = AUTO.pops.filter((at) => t > at).length
+            const left = sel('[data-pop-balloon]').filter((b) => !(b as HTMLButtonElement).disabled)
+            // flung past the scene: pop the rest quietly (no reaction off-screen)
+            const quiet = t > T.flower - 0.2
+            left.slice(0, Math.max(0, due - (3 - left.length))).forEach((b, i) =>
+              gsap.delayedCall(i * 0.15, () => pop(b as HTMLButtonElement, quiet)),
+            )
           }
           if (self.direction > 0 && t > AUTO.flower) applyFlower(sel, isReduced)
           if (!isReduced && !waved && t > AUTO.wave) {

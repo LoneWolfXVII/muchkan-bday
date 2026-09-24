@@ -133,11 +133,16 @@ test('scrolling past without tapping pops the balloons and places the flower', a
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
   await page.waitForTimeout(1200)
-  await scrollTo(page, BALLOONS_T)
-  await scrollTo(page, 2.3) // past the auto-pop point, into the flower scene
-  await page.waitForTimeout(600)
-  await scrollTo(page, 1.6)
+  await scrollTo(page, BALLOONS_T) // balloons up, nothing popped yet
+  await expect(page.getByText('pop the balloons', { exact: false })).toBeVisible()
+  await expect(page.getByText('it’s', { exact: true })).toBeHidden()
+  // scrolling on pops them one by one while they are still on screen, each revealing its word
+  await scrollTo(page, 1.45)
+  await expect(page.getByText('it’s', { exact: true })).toBeVisible()
+  await expect(page.getByText('your', { exact: true })).toBeHidden()
+  await scrollTo(page, 1.75)
   await expect(page.getByText('day', { exact: true })).toBeVisible()
+  expect(await page.locator('[data-pop-balloon]:not([disabled])').count()).toBe(0)
   expect(await flowerInHair(page)).toBe(0)
   await scrollTo(page, PETALS_T) // past the auto-flower point
   await page.waitForTimeout(900)

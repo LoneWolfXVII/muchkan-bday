@@ -15,7 +15,13 @@ export type Q = ReturnType<typeof gsap.utils.selector>
 export const T = { hello: 0, balloons: 0.6, flower: 2.1, petals: 3.1, cake: 4.1, finale: 5.1, end: 6.2 } as const
 
 /** Scroll past these (timeline seconds) and whatever she didn't tap happens on its own, so nothing is skipped. */
-export const AUTO = { pop: T.flower - 0.15, flower: T.petals - 0.1, wave: T.finale + 0.35 } as const
+export const AUTO = {
+  // scrolling through the balloon scene without tapping pops them one by one, while they (and their words) are on screen
+  // (balloons settle at +0.7 and start leaving at +1.2, so the three pops sit in between)
+  pops: [T.balloons + 0.75, T.balloons + 0.92, T.balloons + 1.09],
+  flower: T.petals - 0.1,
+  wave: T.finale + 0.35,
+} as const
 
 const CREAM = '#FBF3E8'
 const PINK = '#F7C6D6'
