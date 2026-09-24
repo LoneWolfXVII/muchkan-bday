@@ -296,6 +296,24 @@ test.describe('real phones', () => {
     await expect(page.getByText('make a wish', { exact: false })).toBeVisible()
   })
 
+  test('the stage fills the tallest screen, so nothing is clipped when the browser bars slide away', async ({ page }) => {
+    // Chromium can't emulate the bars (svh == lvh here), so check the declared height itself
+    await page.goto('/')
+    const heights = await page.evaluate(() =>
+      Array.from(document.styleSheets)
+        .flatMap((sheet) => Array.from(sheet.cssRules))
+        .filter((r): r is CSSStyleRule => r instanceof CSSStyleRule && /_stage_/.test(r.selectorText))
+        .map((r) => r.style.height),
+    )
+    expect(heights).toEqual(['100lvh'])
+    // and it covers the whole scroller
+    const [stageBottom, screenBottom] = await page.evaluate(() => [
+      document.querySelector('[data-scroller] main > div')!.getBoundingClientRect().bottom,
+      document.querySelector('[data-scroller]')!.getBoundingClientRect().bottom,
+    ])
+    expect(stageBottom).toBeGreaterThanOrEqual(screenBottom)
+  })
+
   test('tapping shows no square highlight box', async ({ page }) => {
     await page.goto('/')
     const colors = await page.evaluate(() =>

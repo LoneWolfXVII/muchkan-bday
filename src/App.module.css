@@ -14,7 +14,11 @@
 .stage {
   position: sticky;
   top: 0;
-  height: 100svh;
+  /* The tallest screen (browser bars hidden): phones slide their bars away while scrolling, and a
+     100svh stage then ends above the screen's bottom edge, clipping everything (petals) at a line.
+     lvh never changes as the bars move, so nothing reflows mid-scroll (dvh would). */
+  height: 100vh;
+  height: 100lvh;
   overflow: clip;
   isolation: isolate;
 }
@@ -172,7 +176,7 @@
 .counter {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 72px);
+  bottom: calc(100lvh - 100svh + env(safe-area-inset-bottom) + 72px); /* above the bars even when they show */
   translate: -50% 0;
   z-index: var(--z-ui);
   color: var(--ink-on-night);
@@ -189,7 +193,7 @@
 .hint {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  bottom: calc(100lvh - 100svh + env(safe-area-inset-bottom) + 24px); /* above the bars even when they show */
   translate: -50% 0;
   z-index: var(--z-ui);
   font-size: 0.8rem;
@@ -221,7 +225,7 @@
 .replay {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  bottom: calc(100lvh - 100svh + env(safe-area-inset-bottom) + 20px); /* above the bars even when they show */
   translate: -50% 0;
   z-index: var(--z-ui);
   min-height: 44px;
