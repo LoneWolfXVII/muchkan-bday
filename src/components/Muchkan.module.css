@@ -5,10 +5,6 @@
   overflow: visible;
 }
 
-/* GSAP passes transformOrigin/svgOrigin per tween; these cover the same pivots for anything CSS-driven */
-.her [data-part] { transform-box: fill-box; }
-.her [data-part='head'] { transform-origin: 50% 100%; }
-.her [data-part='plumeria'],
-.her [data-part='bougain'],
-.her [data-part='eyesClosed'],
-.her [data-part='eyesOpen'] { transform-origin: 50% 50%; }
+/* No CSS transform-box/origin on SVG parts: GSAP bakes each part's pivot (transformOrigin/svgOrigin)
+   into its own matrix, measured from the view box. A CSS fill-box moves that reference and
+   displaces every scaled or rotated part (a blink dropped the eyes ~150px). */

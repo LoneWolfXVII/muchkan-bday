@@ -104,6 +104,28 @@ test.describe('review fixes', () => {
   const toFraction = (page: Page, f: number) =>
     page.evaluate((f) => window.scrollTo(0, f * (document.documentElement.scrollHeight - window.innerHeight)), f)
 
+  test('blinking keeps the eyes in place', async ({ page }) => {
+    await page.goto('/')
+    // sample the closed-eye arcs every frame across at least one idle blink (first at 1.6s, then every ~3.4s)
+    const ys = await page.evaluate(
+      () =>
+        new Promise<number[]>((resolve) => {
+          const eyes = document.querySelector('[data-part="eyesClosed"]')!
+          const out: number[] = []
+          const t0 = performance.now()
+          const tick = () => {
+            const b = eyes.getBoundingClientRect()
+            out.push(b.y + b.height / 2)
+            if (performance.now() - t0 < 6000) requestAnimationFrame(tick)
+            else resolve(out.slice(90)) // skip the intro bounce
+          }
+          tick()
+        }),
+    )
+    // a blink squashes the arcs about their own centre, so the centre barely moves
+    expect(Math.max(...ys) - Math.min(...ys)).toBeLessThan(6)
+  })
+
   test('balloon strings stay attached to their knots', async ({ page }) => {
     await page.goto('/')
     await page.waitForTimeout(1200)

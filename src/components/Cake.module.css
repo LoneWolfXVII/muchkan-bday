@@ -18,8 +18,3 @@
   overflow: visible;
 }
 
-.cake [data-flame-rise],
-.cake [data-flame] {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
