@@ -64,6 +64,8 @@ export default function App() {
   const years = useRef(0)
   const stopMic = useRef<(() => void) | null>(null)
   const [mic, setMic] = useState<'idle' | 'listening' | 'off'>(() => (micSupported() ? 'idle' : 'off'))
+  const [harder, setHarder] = useState(false)
+  const harderTimer = useRef(0)
   const counter = useRef<HTMLSpanElement>(null)
 
   // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
@@ -194,6 +196,12 @@ export default function App() {
       stopMic.current = await listenForBlow({
         onLevel: (level) => lean.forEach((to, i) => to((i % 2 ? -1 : 1) * level * (22 + Math.random() * 14))),
         onBlow: blow,
+        onWeak: () => {
+          // she's blowing, just not enough: say so for a moment (restarts while she keeps trying)
+          setHarder(true)
+          clearTimeout(harderTimer.current)
+          harderTimer.current = window.setTimeout(() => setHarder(false), 1600)
+        },
       })
     } catch {
       endMic('off') // denied, no microphone, or unsupported: tapping the cake still works
@@ -316,7 +324,9 @@ export default function App() {
                   make a wish
                   <span className={styles.micArea} aria-live="polite">
                     {mic === 'off' && <span className={styles.sub}>tap the cake</span>}
-                    {mic === 'listening' && <span className={styles.sub}>listening… blow on your phone</span>}
+                    {mic === 'listening' && (
+                        <span className={`${styles.sub} ${harder ? styles.nudge : ''}`}>{harder ? 'blow harder!' : 'listening… blow on your phone'}</span>
+                      )}
                     {mic === 'idle' && (
                       <>
                         <span className={styles.sub}>blow on your phone</span>

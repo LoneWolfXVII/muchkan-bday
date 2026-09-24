@@ -6,8 +6,11 @@
  * ponytail: plain RMS threshold + hold time. If speech ever false-triggers, add a
  * spectral-flatness check (noise is flat, voice is peaky).
  */
-const THRESHOLD = 0.12 // RMS of a float [-1, 1] signal; normal speech at arm's length sits well below
+const THRESHOLD = 0.08 // RMS of a float [-1, 1] signal; a phone mic without auto-gain reads a real blow well above
 const HOLD_MS = 220 // how long it must stay above the threshold
+// a steady breath that isn't strong enough: nudge her to blow harder
+const WEAK = 0.025
+const WEAK_HOLD_MS = 350
 
 export const micSupported = () =>
   typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && typeof AudioContext !== 'undefined'
@@ -17,6 +20,8 @@ type Handlers = {
   onLevel: (level: number) => void
   /** return false to keep listening (e.g. the candles aren't lit yet) */
   onBlow: () => boolean
+  /** a sustained breath under the threshold */
+  onWeak: () => void
 }
 
 /**
@@ -24,7 +29,7 @@ type Handlers = {
  * so it is created before the permission prompt is awaited. Resolves to a stop function;
  * rejects if permission is denied or there is no microphone.
  */
-export async function listenForBlow({ onLevel, onBlow }: Handlers): Promise<() => void> {
+export async function listenForBlow({ onLevel, onBlow, onWeak }: Handlers): Promise<() => void> {
   const ctx = new AudioContext()
   let stream: MediaStream
   try {
@@ -44,6 +49,7 @@ export async function listenForBlow({ onLevel, onBlow }: Handlers): Promise<() =
 
   let raf = 0
   let above = 0
+  let weak = 0
   let last = performance.now()
   let stopped = false
   const stop = () => {
@@ -61,7 +67,12 @@ export async function listenForBlow({ onLevel, onBlow }: Handlers): Promise<() =
     const rms = Math.sqrt(sum / buf.length)
     onLevel(Math.min(1, rms / THRESHOLD))
     above = rms > THRESHOLD ? above + (now - last) : 0
+    weak = rms > WEAK && rms <= THRESHOLD ? weak + (now - last) : 0
     last = now
+    if (weak >= WEAK_HOLD_MS) {
+      weak = 0
+      onWeak()
+    }
     if (above >= HOLD_MS) {
       if (onBlow()) return stop()
       above = 0

@@ -106,6 +106,19 @@
   color: var(--ink);
 }
 .subQuiet { margin-top: 0.6em; opacity: 0.55; }
+.nudge {
+  color: var(--pink);
+  font-weight: 700;
+  opacity: 1;
+  animation: nudge 450ms var(--ease-bounce);
+}
+@keyframes nudge {
+  30% { transform: translateX(-4px) rotate(-2deg); }
+  60% { transform: translateX(4px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nudge { animation: none; }
+}
 
 .age {
   display: block;
