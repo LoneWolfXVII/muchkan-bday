@@ -1,26 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-
-// Scene times from src/scenes.ts T (end = 6.2), sampled a little inside each scene.
-const HELLO_T = 0
-const BALLOONS_T = 1.2
-const FLOWER_T = 2.5
-const PETALS_T = 3.5
-const CAKE_T = 4.9
-const END = 6.2 // src/scenes.ts T.end
-
-const VIEWPORTS = [
-  { name: 'iphone', width: 390, height: 844 },
-  { name: 'iphone-se', width: 375, height: 667 },
-  { name: 'laptop', width: 1440, height: 900 },
-  { name: 'ultrawide', width: 2560, height: 1080 },
-]
-
-async function scrollTo(page: Page, t: number) {
-  await page.evaluate((p) => {
-    window.scrollTo(0, p * (document.documentElement.scrollHeight - window.innerHeight))
-  }, t / END)
-  await page.waitForTimeout(900) // lenis + scrub (0.6s catch-up) settle
-}
+import { BALLOONS_T, CAKE_T, END, FLOWER_T, HELLO_T, PETALS_T, VIEWPORTS, scrollTo } from './helpers'
 
 /** Width of the plumeria in her hair (0 until it is placed). */
 const flowerInHair = (page: Page) =>
@@ -262,12 +241,10 @@ test('popping all 26 balloons in the finale starts the story again', async ({ pa
     const box = (await b.boundingBox())!
     expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
     await b.click() // fails if anything (her, the title, the button) covers a balloon
-    // her face reacts: a big laugh on the first pop, a wide-eyed "wow" on the second
+    // her face reacts on the first pop (later ones only now and then, at random)
     if (i === 0) await expect(page.locator('[data-part="mouthLaugh"]')).toBeVisible({ timeout: 1000 })
-    if (i === 1) await expect(page.locator('[data-part="eyesOpen"]')).toBeVisible({ timeout: 1000 })
-    if (i === 1) await expect(page.locator('[data-part="mouthWow"]')).toBeVisible({ timeout: 1000 })
     if (i === 0) await expect(page.getByText('25 left')).toBeVisible()
-    if (i < 2) await page.screenshot({ path: `e2e/shots/react-${i}.png`, clip: { x: 95, y: 250, width: 200, height: 220 } })
+    if (i < 1) await page.screenshot({ path: `e2e/shots/react-${i}.png`, clip: { x: 95, y: 250, width: 200, height: 220 } })
   }
   await expect(page.getByText('all 26. happy birthday!')).toBeVisible()
   await page.waitForTimeout(4200) // confetti, then the whoosh
@@ -275,4 +252,19 @@ test('popping all 26 balloons in the finale starts the story again', async ({ pa
   await expect(page.getByText('hey Muchkan', { exact: true })).toBeVisible()
   await expect(page.getByText('pop all 26')).toBeHidden()
   expect(errors).toEqual([])
+})
+
+test('mic permission denied falls back to tapping the cake', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.addInitScript(() => {
+    navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException('denied', 'NotAllowedError'))
+  })
+  await page.goto('/')
+  await page.waitForTimeout(1200)
+  await scrollTo(page, CAKE_T)
+  await page.getByRole('button', { name: 'Blow with the microphone' }).click()
+  await expect(page.getByText('tap the cake', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Blow with the microphone' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Blow out the candles' }).click()
+  await expect(page.getByRole('button', { name: 'Candles out. Wish made' })).toBeVisible()
 })

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { listenForBlow, micSupported } from './mic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -57,6 +58,8 @@ export default function App() {
   const trigger = useRef<ScrollTrigger | null>(null)
   const replaying = useRef(false)
   const years = useRef(0)
+  const stopMic = useRef<(() => void) | null>(null)
+  const [mic, setMic] = useState<'idle' | 'listening' | 'off'>(() => (micSupported() ? 'idle' : 'off'))
   const counter = useRef<HTMLSpanElement>(null)
 
   // Lenis drives the scroll; ScrollTrigger listens to it through gsap.ticker.
@@ -75,6 +78,14 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => () => stopMic.current?.(), [])
+
+  const endMic = (next: 'idle' | 'off') => {
+    stopMic.current?.()
+    stopMic.current = null
+    setMic(next)
+  }
+
   const q = () => gsap.utils.selector(stage.current)
 
   const burstAt = (el: Element) => {
@@ -83,9 +94,10 @@ export default function App() {
     confetti.current?.burst(r.left + r.width / 2, r.top + r.height / 2)
   }
 
-  const pop = (balloon: HTMLButtonElement) => {
+  /** `auto`: popped for her because she scrolled past; the word still shows, but she doesn't react */
+  const pop = (balloon: HTMLButtonElement, auto = false) => {
     if (!popBalloon(balloon, reduced())) return
-    if (!reduced()) laugh(q(), pops.current)
+    if (!reduced() && !auto) laugh(q(), pops.current === 0 ? 'laugh' : undefined)
     revealPopWord(q(), pops.current++)
   }
 
@@ -95,7 +107,7 @@ export default function App() {
     if (!popBalloon(balloon, reduced())) return
     const left = YEARS - ++years.current
     counter.current!.textContent = left ? `${left} left` : `all ${YEARS}. happy birthday!`
-    if (!reduced()) laugh(q(), years.current - 1) // alternate from a laugh on the first pop
+    if (!reduced()) laugh(q(), years.current === 1 ? 'laugh' : left ? undefined : 'laugh') // first and last always react
     if (left) return
     // the last one: confetti everywhere, then the story starts again on its own
     ;[0.2, 0.5, 0.8].forEach((fx, i) =>
@@ -127,7 +139,7 @@ export default function App() {
           if (self.direction > 0 && t > AUTO.pop) {
             sel('[data-pop-balloon]')
               .filter((b) => !(b as HTMLButtonElement).disabled)
-              .forEach((b, i) => gsap.delayedCall(i * 0.15, () => pop(b as HTMLButtonElement)))
+              .forEach((b, i) => gsap.delayedCall(i * 0.15, () => pop(b as HTMLButtonElement, true)))
           }
           if (self.direction > 0 && t > AUTO.flower) applyFlower(sel, isReduced)
           if (!isReduced && !waved && t > AUTO.wave) {
@@ -135,6 +147,7 @@ export default function App() {
             wave(sel)
           }
           if (t < T.finale) waved = false
+          if (stopMic.current && (t < T.cake || t >= T.finale)) endMic('idle') // mic off as soon as she leaves the cake
           const c = themeColor(self.progress)
           if (meta.content !== c) {
             meta.content = c
@@ -147,21 +160,40 @@ export default function App() {
   )
 
   const blow = () => {
-    if (blownRef.current) return // Review Focus 3: no double burst
+    if (blownRef.current) return false // Review Focus 3: no double burst
     const rises = stage.current!.querySelectorAll('[data-flame-rise]')
-    if (Number(gsap.getProperty(rises[rises.length - 1], 'scale')) < 1) return // candles not lit yet
+    if (Number(gsap.getProperty(rises[rises.length - 1], 'scale')) < 1) return false // candles not lit yet
     blownRef.current = true
     setBlown(true)
+    endMic('off')
     blowCandles(q(), () => {
       burstAt(stage.current!.querySelector('[data-cake]')!)
       burstAt(stage.current!.querySelector('[data-age-in]')!)
     })
+    return true
+  }
+
+  // blow on the phone: the flames lean with her breath, a real blow puts them out
+  const startMic = async () => {
+    if (mic !== 'idle') return
+    setMic('listening')
+    const flames = Array.from(stage.current!.querySelectorAll('[data-flame]'))
+    const lean = flames.map((f) => gsap.quickTo(f, 'rotation', { duration: 0.12, ease: 'soft' }))
+    try {
+      stopMic.current = await listenForBlow({
+        onLevel: (level) => lean.forEach((to, i) => to((i % 2 ? -1 : 1) * level * (22 + Math.random() * 14))),
+        onBlow: blow,
+      })
+    } catch {
+      endMic('off') // denied, no microphone, or unsupported: tapping the cake still works
+    }
   }
 
   // "Play again": a circle whooshes out of the button and covers the screen; behind it everything
   // resets and jumps to the top; then it whooshes away and she bounces in again like the first load.
   const replay = (origin: Element) => {
     if (replaying.current) return
+    endMic(micSupported() ? 'idle' : 'off')
     replaying.current = true
     const w = wipe.current!
     const r = origin.getBoundingClientRect()
@@ -268,7 +300,25 @@ export default function App() {
             <p data-word="bloom">bloom</p>
             <div data-word="wish" className={styles.swap}>
               <span data-wish-in>
-                make a wish<span className={styles.sub}>tap the cake</span>
+                make a wish
+                <span className={styles.micArea} aria-live="polite">
+                  {mic === 'off' && <span className={styles.sub}>tap the cake</span>}
+                  {mic === 'listening' && <span className={styles.sub}>listening… blow on your phone</span>}
+                  {mic === 'idle' && (
+                    <>
+                      <span className={styles.sub}>blow on your phone</span>
+                      <button
+                        type="button"
+                        className={styles.micButton}
+                        onClick={startMic}
+                        aria-label="Blow with the microphone"
+                      >
+                        use mic
+                      </button>
+                      <span className={`${styles.sub} ${styles.subQuiet}`}>or tap the cake</span>
+                    </>
+                  )}
+                </span>
               </span>
               <span data-age-in>
                 <span className={styles.age}>26</span>
