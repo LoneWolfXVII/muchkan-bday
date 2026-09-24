@@ -1,0 +1,23 @@
+/* anchored at the plumeria: viewBox (92,44) inside "30 20 140 220" → 44% across, 11% down */
+.petals {
+  position: absolute;
+  left: 44%;
+  top: 11%;
+  width: 0;
+  height: 0;
+  z-index: var(--z-petals);
+  pointer-events: none;
+}
+
+.petals i {
+  position: absolute;
+  left: -7px;
+  top: -12px;
+  width: 14px;
+  height: 24px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #FFF9F0;
+  box-shadow: inset 0 0 0 1px #E9D9C4;
+  visibility: hidden;
+  opacity: 0;
+}
