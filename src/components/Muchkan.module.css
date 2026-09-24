@@ -1,0 +1,14 @@
+.her {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* GSAP passes transformOrigin/svgOrigin per tween; these cover the same pivots for anything CSS-driven */
+.her [data-part] { transform-box: fill-box; }
+.her [data-part='head'] { transform-origin: 50% 100%; }
+.her [data-part='plumeria'],
+.her [data-part='bougain'],
+.her [data-part='eyesClosed'],
+.her [data-part='eyesOpen'] { transform-origin: 50% 50%; }
