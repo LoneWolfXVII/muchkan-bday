@@ -15,7 +15,13 @@ export type Q = ReturnType<typeof gsap.utils.selector>
 export const T = { hello: 0, balloons: 0.6, flower: 2.1, petals: 3.1, cake: 4.1, finale: 5.1, end: 6.2 } as const
 
 /** Scroll past these (timeline seconds) and whatever she didn't tap happens on its own, so nothing is skipped. */
-export const AUTO = { pop: T.flower - 0.15, flower: T.petals - 0.1, wave: T.finale + 0.35 } as const
+export const AUTO = {
+  // scrolling through the balloon scene without tapping pops them one by one, while they (and their words) are on screen
+  // (balloons settle at +0.7 and start leaving at +1.2, so the three pops sit in between)
+  pops: [T.balloons + 0.75, T.balloons + 0.92, T.balloons + 1.09],
+  flower: T.petals - 0.1,
+  wave: T.finale + 0.35,
+} as const
 
 const CREAM = '#FBF3E8'
 const PINK = '#F7C6D6'
@@ -103,7 +109,7 @@ export function resetInteractions(q: Q) {
   gsap.set(q('[data-part="plumeria"]'), { scale: 0, rotation: 0, transformOrigin: '50% 50%' })
   gsap.set(q('[data-part="blush"]'), { opacity: 0.6 })
   restFace(q)
-  gsap.set(q('[data-flame]'), { scale: 1, transformOrigin: '50% 100%' })
+  gsap.set(q('[data-flame]'), { scale: 1, rotation: 0, transformOrigin: '50% 100%' })
   q('[data-pop-balloon], [data-field-balloon], [data-flower]').forEach((b) => ((b as HTMLButtonElement).disabled = false))
 }
 
@@ -302,12 +308,18 @@ function restFace(q: Q) {
 }
 
 /**
- * She reacts to a pop: a hop plus an expression that alternates between a big laugh
- * and a wide-eyed "wow", then settles back to her smile. Rapid taps restart it cleanly.
+ * She reacts to a pop. Every pop gets a hop; the face changes only now and then:
+ * pops that land while a reaction is showing join it, otherwise about a third of pops
+ * pick a laugh or a wide-eyed "wow" at random. `force` guarantees one (first/last pop).
  */
-export function laugh(q: Q, n = 0) {
+export function laugh(q: Q, force?: 'laugh' | 'wow') {
+  gsap.fromTo(q('[data-her]'), { y: 0 }, { y: -14, duration: 0.14, yoyo: true, repeat: 1, ease: 'soft' })
+  if (!force && (face?.isActive() || Math.random() > 0.35)) return
+  react(q, force ? force === 'wow' : Math.random() < 0.5)
+}
+
+function react(q: Q, wow: boolean) {
   restFace(q)
-  const wow = n % 2 === 1
   const mouth = q(wow ? '[data-part="mouthWow"]' : '[data-part="mouthLaugh"]')
   face = gsap.timeline()
     .set(q('[data-part="mouth"]'), { autoAlpha: 0 })
@@ -322,7 +334,6 @@ export function laugh(q: Q, n = 0) {
     .to(q('[data-part="brows"]'), { y: 0, duration: 0.3, ease: 'soft' }, 1.3)
     .set(q(FACE), { autoAlpha: 0 }, 1.4)
     .set(q('[data-part="mouth"], [data-part="eyesClosed"], [data-part="brows"]'), { autoAlpha: 1 }, 1.4)
-  gsap.fromTo(q('[data-her]'), { y: 0 }, { y: -14, duration: 0.14, yoyo: true, repeat: 1, ease: 'soft' })
   gsap.fromTo(q('[data-part="blush"]'), { opacity: 1 }, { opacity: 0.6, duration: 0.8, ease: 'soft' })
 }
 

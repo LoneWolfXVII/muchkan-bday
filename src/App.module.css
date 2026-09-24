@@ -67,6 +67,29 @@
   text-transform: uppercase;
   opacity: 0.7;
 }
+.micArea { display: grid; justify-items: center; }
+.micButton {
+  margin-top: 0.8em;
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg-cream);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: auto; /* the words layer ignores taps; this button doesn't */
+  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
+}
+.micButton:hover,
+.micButton:focus-visible {
+  background: transparent;
+  color: var(--ink);
+}
+.subQuiet { margin-top: 0.6em; opacity: 0.55; }
+
 .age {
   display: block;
   font-size: min(clamp(5.5rem, 4rem + 12vw, 10rem), 13svh); /* short screens: keep clear of her head */
@@ -140,20 +163,16 @@
 .counter {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 92px);
+  bottom: calc(env(safe-area-inset-bottom) + 72px);
   translate: -50% 0;
   z-index: var(--z-ui);
   color: var(--ink-on-night);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-shadow: 0 1px 12px rgb(51 37 79 / 0.9); /* stays legible where it crosses her shirt */
   pointer-events: none;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgb(51 37 79 / 0.8); /* legible over her shirt on wide screens */
 }
 .titleWord { display: inline-block; white-space: nowrap; }
 .words [data-letter] { display: inline-block; }
@@ -176,22 +195,7 @@
   .hint { animation: none; }
 }
 
-.replay {
-  position: absolute;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 28px);
-  translate: -50% 0;
-  z-index: var(--z-ui);
-  min-height: 48px;
-  padding: 12px 26px;
-  border-radius: 999px;
-  border: 2px solid var(--ink-on-night);
-  background: transparent;
-  color: var(--ink-on-night);
-  font-weight: 500;
-  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
-}
-/* the "Play again" whoosh: a circle GSAP positions (x/y) and scales from the button */
+/* the "start over" whoosh: a circle GSAP positions (x/y) and scales from the button */
 .wipe {
   position: fixed;
   left: 0;
@@ -204,8 +208,29 @@
   pointer-events: none;
 }
 
+/* the ending reads like the last line of a storybook: a plain underlined text button */
+.replay {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  translate: -50% 0;
+  z-index: var(--z-ui);
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: rgb(255 249 240 / 0.72);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgb(255 249 240 / 0.4);
+  text-underline-offset: 5px;
+  transition: color 250ms var(--ease-out), text-decoration-color 250ms var(--ease-out);
+}
 .replay:hover,
 .replay:focus-visible {
-  background: var(--ink-on-night);
-  color: var(--bg-night);
+  color: var(--ink-on-night);
+  text-decoration-color: var(--pink);
+  text-decoration-thickness: 2px;
 }
